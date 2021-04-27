@@ -7,6 +7,10 @@ const app = express();
 const port = 3050;
 const routepath = "/username/:username/hash/:password";
 
+// Mysql login info
+// Username: quickDB
+// Password: !Password1!
+
 app.get("/", (req,res) =>{
 
 	//res.send("This is a quickSite API endpoint!");
