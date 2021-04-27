@@ -101,6 +101,7 @@ app.post("/auth", (req,res) => {
 		
 		// Opret variabler
 		var passwordHash = result[0].password;
+		var userID = result[0].id;
 
 		// Tjek om passwords stemmer overens
 		if (bcrypt.compareSync(password, passwordHash)) {
@@ -108,6 +109,11 @@ app.post("/auth", (req,res) => {
 			// Opdater echo
 			echo.success = true;
 			echo.status = "Login found and password correct!"
+
+			// Sæt session token
+			req.session.loggedIn = true;
+			req.session.username = username;
+			req.session.userID = userID;
 
 		}else {
 
