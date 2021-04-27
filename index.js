@@ -186,5 +186,114 @@ app.post("/signup", (req,res) => {
 
 })
 
+// Get sites
+app.get("/getSites", (req,res) => {
+
+	// Opret echo som sendes om svar til sidst
+	var echo = {
+		err: "",
+		errCode: 0,
+		success: false,
+		status: "",
+		data: ""
+	}
+
+	// Tjek om bruger er logget ind
+	if (req.session.loggedIn) {
+		
+		// Bruger er logget ind
+		// Opret vars
+		var loginUser = req.session.username;
+		var loginUserID = req.session.userID;
+
+		// MYSQL Query
+		var result = conn.query(`SELECT * FROM Sites WHERE user_id = "${loginUserID}"`);
+
+		// Opdater echo
+		echo.data = result;
+		echo.success = true;
+		echo.status = "Get all sites";
+
+	}else {
+
+		// Bruger er ikke logget ind
+		echo.success = false;
+		echo.err = "User not logged in!";
+		echo.errCode = 403;
+
+	}
+
+	res.send(echo);
+
+})
+
+// Create sites
+app.post("/createSite", (req,res) => {
+
+	// Opret echo som sendes om svar til sidst
+	var echo = {
+		err: "",
+		errCode: 0,
+		success: false,
+		status: "",
+		data: ""
+	}
+
+	// Tjek om brugeren er logget ind
+	if (req.session.loggedIn) {
+
+		// Bruger er logget ind
+		// Tjek om alle parametre er blevet udfyldt.
+		/* name, contact_mail, contact_phone, contact_name, contact_address, text, skabelon_id */
+		var pbody = req.body;
+
+		if (pbody.name && pbody.contact_mail && pbody.contact_phone && pbody.contact_name && pbody.contact_address && pbody.text && pbody.skabelon_id) {
+
+			// Alle vars er sat
+			echo.success = true;
+			echo.status = "Alle variabler fundet!";
+			echo.data = pbody;
+
+			// Opret ny site i mysql
+			var result = conn.query(`INSERT INTO Sites (name, contact_mail, contact_phone, contact_name, contact_address, text, skabelon_id, user_id) VALUES ("${pbody.name}", "${pbody.contact_mail}", "${pbody.contact_phone}", "${pbody.contact_name}", "${pbody.contact_address}", "${pbody.text}", "${pbody.skabelon_id}", "${req.session.userID}")`)
+			
+			console.log("Results", result);
+
+			// Opdater echo
+			echo.success = true;
+			echo.status = "Site oprettet: " + pbody.name;
+			
+
+		}else {
+
+			// Ikke alle variabler er udfyldt
+			echo.success = false;
+			echo.status = "Ikke alle variabler er udfyldt";
+			echo.data = pbody;x$
+
+		}
+
+	}else {
+
+		// Bruger ikke logget ind
+		echo.success = false;
+		echo.err = "User not logged in!";
+		echo.errCode = 403;
+
+	}
+
+	// Send echo
+	res.send(echo);
+
+})
+
+// 404
+app.use("*", (req,res) => {
+	
+	// Send 404
+	res.send("404 page not found...");
+
+})
+
 // Start express server
 app.listen(port, () => console.log(`App started on port: ${port}!`))
