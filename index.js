@@ -1,10 +1,11 @@
 
 // Require
 const express = require("express");
-
-// Express
+let username; 
+let passwordhash;
 const app = express();
 const port = 3050;
+const routepath = "/username/:username/hash/:password";
 
 // Express sessions
 const session = require("express-session");
@@ -26,25 +27,14 @@ app.use(session({
 
 app.get("/", (req,res) =>{
 
-	// Tjek om brugeren er logget ind
-	if (!req.session.isLoggedIn) {
-		res.send("Du er ikke logget ind!");
-	}else {
-		res.send("This is a quickSite API endpoint!" + req.query.peter);
-	}
+	//res.send("This is a quickSite API endpoint!");
+	res.send(req.query.prams);
+	if(req.query.username||req.query.passwordhash)
+	res.redirect("Loginsite", token)
 
 })
 
-// Test
-app.get("/username/:username/hash/:password/", (req,res) => {
 
-	// Opret vars
-	var username = req.params.username;
-	var password = req.params.password;
-
-	res.send(username + "-" + password);
-
-})
 
 // Start express server
-app.listen(port, () => console.log("App started!"));
+app.listen(port, () => console.log("App started!"))
