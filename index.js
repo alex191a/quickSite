@@ -269,7 +269,7 @@ app.post("/createSite", (req,res) => {
 			// Ikke alle variabler er udfyldt
 			echo.success = false;
 			echo.status = "Ikke alle variabler er udfyldt";
-			echo.data = pbody;x$
+			echo.dataSent = pbody;
 
 		}
 
