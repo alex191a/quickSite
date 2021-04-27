@@ -249,21 +249,35 @@ app.post("/createSite", (req,res) => {
 		/* name, contact_mail, contact_phone, contact_name, contact_address, text, skabelon_id */
 		var pbody = req.body;
 
-		if (pbody.name && pbody.contact_mail && pbody.contact_phone && pbody.contact_name && pbody.contact_address && pbody.text && pbody.skabelon_id) {
+		if (pbody.name && pbody.contact_mail && pbody.contact_phone && pbody.contact_name && pbody.contact_address && pbody.text && pbody.skabelon_id && pbody.sub_domain) {
 
 			// Alle vars er sat
 			echo.success = true;
 			echo.status = "Alle variabler fundet!";
 			echo.data = pbody;
 
-			// Opret ny site i mysql
-			var result = conn.query(`INSERT INTO Sites (name, contact_mail, contact_phone, contact_name, contact_address, text, skabelon_id, user_id) VALUES ("${pbody.name}", "${pbody.contact_mail}", "${pbody.contact_phone}", "${pbody.contact_name}", "${pbody.contact_address}", "${pbody.text}", "${pbody.skabelon_id}", "${req.session.userID}")`)
-			
-			console.log("Results", result);
+			// Tjek om sub_domain er unik
+			var subCheck = conn.query(`SELECT * FROM Sites WHERE sub_domain = "${pbody.sub_domain}"`);
 
-			// Opdater echo
-			echo.success = true;
-			echo.status = "Site oprettet: " + pbody.name;
+			// tjek
+			if (subCheck.length > 0) {
+
+				// Side eksisterer allerede
+				echo.success = false;
+				echo.status = "This sub_domain already exists!";
+
+			}else {
+
+				// Opret ny site i mysql
+				var result = conn.query(`INSERT INTO Sites (name, contact_mail, contact_phone, contact_name, contact_address, text, skabelon_id, user_id, sub_domain) VALUES ("${pbody.name}", "${pbody.contact_mail}", "${pbody.contact_phone}", "${pbody.contact_name}", "${pbody.contact_address}", "${pbody.text}", "${pbody.skabelon_id}", "${req.session.userID}", "${pbody.sub_domain}")`)
+				
+				console.log("Results", result);
+
+				// Opdater echo
+				echo.success = true;
+				echo.status = "Site oprettet: " + pbody.name;
+
+			}
 			
 
 		}else {
@@ -271,7 +285,7 @@ app.post("/createSite", (req,res) => {
 			// Ikke alle variabler er udfyldt
 			echo.success = false;
 			echo.status = "Ikke alle variabler er udfyldt";
-			echo.dataSent = pbody;
+			echo.dataSentErr = pbody;
 
 		}
 
@@ -357,6 +371,8 @@ app.delete("/deleteSite", (req,res) => {
 
 	
 })
+
+
 
 // 404
 app.use("*", (req,res) => {
