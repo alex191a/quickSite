@@ -288,6 +288,68 @@ app.post("/createSite", (req,res) => {
 
 })
 
+// Delete site
+app.delete("/deleteSite", (req,res) => {
+
+	// Opret echo som sendes om svar til sidst
+	var echo = {
+		err: "",
+		errCode: 0,
+		success: false,
+		status: "",
+		data: ""
+	}
+
+	// Tjek om brugeren er online
+	if (req.session.loggedIn) {
+
+		// Tjek om variabler er udfyldt
+		if (req.session.userID && req.body.site_id) {
+
+			// Alle variabler er udfyldt
+			// Tjek om userID og user_id i mysql stemmer overens
+			var userCheck = conn.query(`SELECT * FROM Sites WHERE user_id = "${req.session.userID}" AND id = "${req.body.site_id}"`);
+
+			// If length
+			if (userCheck.length > 0) {
+
+				// Det hele stemmer overens
+				// Fjern denne fra DB
+				var deleteMysql = conn.query(`DELETE FROM Sites WHERE user_id = "${req.session.userID}" AND id = "${req.body.site_id}"`);
+
+				// Opdater echo
+				echo.success = true;
+				echo.status = `Site with id: ${req.body.site_id} has been deleted!`;
+			
+				// console.log
+				// console.log("Delete", deleteMysql);
+
+			}else {
+				
+				// Dette site tilhører ikke denne bruger
+				echo.success = false;
+				echo.err = "This site is not yours!";
+				echo.errCode = 403;
+
+			}
+
+		}else {
+
+			// Ikke alle variabler er udfyldt
+			echo.success = false;
+			echo.status = "Ikke alle variabler er udfyldt!";
+
+		}
+
+	}else {
+
+	}
+
+	// Send echo
+	res.send(echo)
+
+})
+
 // 404
 app.use("*", (req,res) => {
 	
