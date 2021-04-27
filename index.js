@@ -158,20 +158,13 @@ app.post("/signup", (req,res) => {
 	const salt = bcrypt.genSaltSync(saltRounds);
 	const passwordHash = bcrypt.hashSync(password, salt);
 
-	// Opret ny bruger i DB.
-	conn2.query(`INSERT INTO Users (username, password) VALUES ("${username}", "${passwordHash}")`, 
-	(err, results, fields) => {
-		if (err) {
-		
-			// Opdater echo med errors
-			echo.err = err;
-			echo.errCode = 500;
-			echo.success = false;
+	// Tjek om brugernavnet allerede findes i DB.
+	var userCheck = conn.query(`SELECT * FROM Users WHERE username = "${username}"`);
 
-			res.send(echo);
-		
-			throw err;
-		}
+	if (!(userCheck.length > 0)) {
+
+		// Opret bruger i DB
+		var result = conn.query(`INSERT INTO Users (username, password) VALUES ("${username}", "${passwordHash}")`);
 
 		console.log("Results", results);
 		console.log("Fields", fields);
@@ -180,9 +173,17 @@ app.post("/signup", (req,res) => {
 		echo.success = true;
 		echo.status = "User created with username: " + username;
 
-		res.send(echo);
+	}else {
 
-	})
+		// Brugernavnet findes allerede
+		// Opdater echo
+		echo.success = false;
+		echo.err = `Username: '${username}' already exists!`;
+		echo.errCode = 500;
+
+	}
+
+	res.send(echo);
 
 })
 
