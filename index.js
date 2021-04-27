@@ -328,7 +328,7 @@ app.delete("/deleteSite", (req,res) => {
 				
 				// Dette site tilhører ikke denne bruger
 				echo.success = false;
-				echo.err = "This site is not yours!";
+				echo.err = "This site does not exists or it does not belong to you!";
 				echo.errCode = 403;
 
 			}
