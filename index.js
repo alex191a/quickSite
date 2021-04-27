@@ -1,14 +1,28 @@
 
 // Require
 const express = require("express");
-const mysql = require('mysql')
 
 const app = express();
 const port = 3050;
-const routepath = "/username/:username/hash/:password";
 
 // Express sessions
 const session = require("express-session");
+
+// Bcrypt til hashing af passwords.
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
+// Body parser m.m. til POST info
+var bodyParser = require('body-parser');
+var multer = require('multer');
+var upload = multer(); 
+var cookieParser = require('cookie-parser');
+
+// Opstart disse
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true })); 
+app.use(upload.array());
+app.use(cookieParser());
 
 // Opstart sessions
 app.set('trust proxy', 1) // trust first proxy
@@ -16,7 +30,6 @@ app.use(session({
 	secret: '!Password1!',
 	resave: false,
 	saveUninitialized: true,
-	cookie: { secure: true }
 }))
 
 // Mysql login info
@@ -25,50 +38,328 @@ app.use(session({
 // Server: famas.ml
 // Database: quicksite
 
-const db = 'quicksite';
-const dbusername = 'quickDB';
-const dbPassword = '!Password1!';
-const server = 'famas.ml'
-const conn = mysql.createConnection({
-	host: server,
-	user: dbusername,
-	password: dbPassword,
-	database: db
-})
+// Mysql
+var mysql = require('sync-mysql');
+var conn = new mysql({
+	host: 'famas.ml',
+	user: 'quickDB',
+	password: '!Password1!',
+	database: "quicksite"
+});
+
+// get the client
+const mysql2 = require('mysql2');
+// create the connection to database
+const conn2 = mysql2.createConnection({
+	host: 'famas.ml',
+	user: 'quickDB',
+	password: '!Password1!',
+	database: 'quicksite'
+});
 
 app.get("/", (req,res) =>{
-conn.connect()
-	//res.send("This is a quickSite API endpoint!");
-	let token
-	let username = "undefined"
-	if(req.query.username){
-		username = req.query.username 
+
+	// Tjek om logget ind
+	if (req.session.loggedIn) {
+		res.send(`This is a quickSite API endpoint! - ${req.session.username}`);
+	}else {
+		res.send("You are not logged in!");
 	}
-	let authenticate;
-	authenticate= conn.query(`SELECT password FROM Users WHERE Users.username = "${username}"`,function (error, results){
-		if(error) throw error;
-	 }).RowDataPacket.toString()
-	 
-	res.send (authenticate);
-	if(req.query.passwordhash==authenticate){
-		conn.query(`SELECT id FROM Users WHERE username = "${username}"`,function (error, results){
-			if(error) throw error;
-			token = results[0]
-		});
+
+})
+
+app.get("/session", (req,res) => {
+
+	// Start session
+	req.session.loggedIn = true;
+	req.session.username = "mortenand123"
+
+	// Send tilbage til startsiden
+	res.redirect("/");
+
+})
+
+// Post login
+app.post("/auth", (req,res) => {
+
+	// Opret echo som sendes om svar til sidst
+	var echo = {
+		err: "",
+		errCode: 0,
+		success: false,
+		status: ""
 	}
-	else{
-		//res.redirect("/");
-		res.send("ass")
+
+	// Post login params
+	var username = req.body.username;
+	var password = req.body.password;
+
+	// Tjek om dette brugernavn findes
+	var result = conn.query(`SELECT * FROM Users WHERE username = "${username}" LIMIT 1`);
+
+	// Tjek om denne bruger findes i result array
+	if (result.length > 0) {
+		
+		// Opret variabler
+		var passwordHash = result[0].password;
+		var userID = result[0].id;
+
+		// Tjek om passwords stemmer overens
+		if (bcrypt.compareSync(password, passwordHash)) {
+
+			// Opdater echo
+			echo.success = true;
+			echo.status = "Login found and password correct!"
+
+			// Sæt session token
+			req.session.loggedIn = true;
+			req.session.username = username;
+			req.session.userID = userID;
+
+		}else {
+
+			// Opdater echo
+			echo.success = false;
+			echo.status = "Login found but password is incorrect!";
+
+		}
+
+	}else {
+		
+		// Opdater echo
+		echo.success = false;
+		echo.status = "Login not found!";
+
 	}
-	if(token){
-		res.send("jonas er Ass")
-		//res.redirect("yoursite.js/"+token);
+	
+	// Send echo
+	res.send(echo);
+
+})
+
+// Opret ny bruger
+app.post("/signup", (req,res) => {
+
+	// Opret echo som sendes om svar til sidst
+	var echo = {
+		err: "",
+		errCode: 0,
+		success: false,
+		status: ""
 	}
+
+	// Opret variabler
+	var username = req.body.username;
+	var password = req.body.password;
+
+	// Log
+	console.log(`New user request: username: ${username} - pass: ${password}`)
+
+	// Hash password
+	const salt = bcrypt.genSaltSync(saltRounds);
+	const passwordHash = bcrypt.hashSync(password, salt);
+
+	// Tjek om brugernavnet allerede findes i DB.
+	var userCheck = conn.query(`SELECT * FROM Users WHERE username = "${username}"`);
+
+	if (!(userCheck.length > 0)) {
+
+		// Opret bruger i DB
+		var result = conn.query(`INSERT INTO Users (username, password) VALUES ("${username}", "${passwordHash}")`);
+
+		console.log("Results", results);
+		console.log("Fields", fields);
+
+		// Opdater echo
+		echo.success = true;
+		echo.status = "User created with username: " + username;
+
+	}else {
+
+		// Brugernavnet findes allerede
+		// Opdater echo
+		echo.success = false;
+		echo.err = `Username: '${username}' already exists!`;
+		echo.errCode = 500;
+
+	}
+
+	res.send(echo);
+
+})
+
+// Get sites
+app.get("/getSites", (req,res) => {
+
+	// Opret echo som sendes om svar til sidst
+	var echo = {
+		err: "",
+		errCode: 0,
+		success: false,
+		status: "",
+		data: ""
+	}
+
+	// Tjek om bruger er logget ind
+	if (req.session.loggedIn) {
+		
+		// Bruger er logget ind
+		// Opret vars
+		var loginUser = req.session.username;
+		var loginUserID = req.session.userID;
+
+		// MYSQL Query
+		var result = conn.query(`SELECT * FROM Sites WHERE user_id = "${loginUserID}"`);
+
+		// Opdater echo
+		echo.data = result;
+		echo.success = true;
+		echo.status = "Get all sites";
+
+	}else {
+
+		// Bruger er ikke logget ind
+		echo.success = false;
+		echo.err = "User not logged in!";
+		echo.errCode = 403;
+
+	}
+
+	res.send(echo);
+
+})
+
+// Create sites
+app.post("/createSite", (req,res) => {
+
+	// Opret echo som sendes om svar til sidst
+	var echo = {
+		err: "",
+		errCode: 0,
+		success: false,
+		status: "",
+		data: ""
+	}
+
+	// Tjek om brugeren er logget ind
+	if (req.session.loggedIn) {
+
+		// Bruger er logget ind
+		// Tjek om alle parametre er blevet udfyldt.
+		/* name, contact_mail, contact_phone, contact_name, contact_address, text, skabelon_id */
+		var pbody = req.body;
+
+		if (pbody.name && pbody.contact_mail && pbody.contact_phone && pbody.contact_name && pbody.contact_address && pbody.text && pbody.skabelon_id) {
+
+			// Alle vars er sat
+			echo.success = true;
+			echo.status = "Alle variabler fundet!";
+			echo.data = pbody;
+
+			// Opret ny site i mysql
+			var result = conn.query(`INSERT INTO Sites (name, contact_mail, contact_phone, contact_name, contact_address, text, skabelon_id, user_id) VALUES ("${pbody.name}", "${pbody.contact_mail}", "${pbody.contact_phone}", "${pbody.contact_name}", "${pbody.contact_address}", "${pbody.text}", "${pbody.skabelon_id}", "${req.session.userID}")`)
+			
+			console.log("Results", result);
+
+			// Opdater echo
+			echo.success = true;
+			echo.status = "Site oprettet: " + pbody.name;
+			
+
+		}else {
+
+			// Ikke alle variabler er udfyldt
+			echo.success = false;
+			echo.status = "Ikke alle variabler er udfyldt";
+			echo.dataSent = pbody;
+
+		}
+
+	}else {
+
+		// Bruger ikke logget ind
+		echo.success = false;
+		echo.err = "User not logged in!";
+		echo.errCode = 403;
+
+	}
+
+	// Send echo
+	res.send(echo);
+
+})
+
+// Delete site
+app.delete("/deleteSite", (req,res) => {
+
+	// Opret echo som sendes om svar til sidst
+	var echo = {
+		err: "",
+		errCode: 0,
+		success: false,
+		status: "",
+		data: ""
+	}
+
+	// Tjek om brugeren er online
+	if (req.session.loggedIn) {
+
+		// Tjek om variabler er udfyldt
+		if (req.session.userID && req.body.site_id) {
+
+			// Alle variabler er udfyldt
+			// Tjek om userID og user_id i mysql stemmer overens
+			var userCheck = conn.query(`SELECT * FROM Sites WHERE user_id = "${req.session.userID}" AND id = "${req.body.site_id}"`);
+
+			// If length
+			if (userCheck.length > 0) {
+
+				// Det hele stemmer overens
+				// Fjern denne fra DB
+				var deleteMysql = conn.query(`DELETE FROM Sites WHERE user_id = "${req.session.userID}" AND id = "${req.body.site_id}"`);
+
+				// Opdater echo
+				echo.success = true;
+				echo.status = `Site with id: ${req.body.site_id} has been deleted!`;
+			
+				// console.log
+				// console.log("Delete", deleteMysql);
+
+			}else {
+				
+				// Dette site tilhører ikke denne bruger
+				echo.success = false;
+				echo.err = "This site does not exists or it does not belong to you!";
+				echo.errCode = 403;
+
+			}
+
+		}else {
+
+			// Ikke alle variabler er udfyldt
+			echo.success = false;
+			echo.status = "Ikke alle variabler er udfyldt!";
+
+		}
+
+	}else {
+
+	}
+
+	// Send echo
+	res.send(echo)
+
 
 	
 })
 
+// 404
+app.use("*", (req,res) => {
+	
+	// Send 404
+	res.send("404 page not found...");
 
+})
 
 // Start express server
-app.listen(port, () => console.log("App started!"))
+app.listen(port, () => console.log(`App started on port: ${port}!`))
