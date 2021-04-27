@@ -344,6 +344,11 @@ app.delete("/deleteSite", (req,res) => {
 
 	}else {
 
+		// Bruger ikke logget ind
+		echo.success = false;
+		echo.err = "User not logged in!";
+		echo.errCode = 403;
+
 	}
 
 	// Send echo
