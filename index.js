@@ -372,6 +372,27 @@ app.delete("/deleteSite", (req,res) => {
 	
 })
 
+// Render site
+app.get("/s/:site/", (req,res) => {
+
+	// Opret variabler
+	var siteParam = req.params.site;
+
+	// Tjek om denne site eksisterer
+	var siteCheck = conn.query(`SELECT * FROM Sites WHERE sub_domain = "${siteParam}" LIMIT 1`);
+
+	// Tjek
+	if (siteCheck.length > 0) {
+
+		res.send(siteCheck[0]);
+
+	}else {
+
+		res.redirect("/");
+
+	}
+
+})
 
 
 // 404
