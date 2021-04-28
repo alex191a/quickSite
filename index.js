@@ -60,18 +60,22 @@ const conn2 = mysql2.createConnection({
 	database: 'quicksite'
 });
 
+// Root
 app.get("/", (req,res) =>{
 
+	res.render("./pages/index", {loginState: req.body});
+
 	// Tjek om logget ind
-	if (req.session.loggedIn) {
+	/* if (req.session.loggedIn) {
 		res.send(`This is a quickSite API endpoint! - ${req.session.username}`);
 	}else {
 		res.send("You are not logged in!");
-	}
+	} */
 
 })
 
-app.get("/session", (req,res) => {
+// Start ny "fake" session
+/* app.get("/session", (req,res) => {
 
 	// Start session
 	req.session.loggedIn = true;
@@ -79,6 +83,14 @@ app.get("/session", (req,res) => {
 
 	// Send tilbage til startsiden
 	res.redirect("/");
+
+}) */
+
+// Login Side
+app.get("/login", (req,res) => {
+
+	// Render
+	res.render("./pages/login", {loginState: req.body})
 
 })
 
@@ -93,7 +105,7 @@ app.post("/auth", (req,res) => {
 		status: ""
 	}
 
-	if (username in req.body && password in req.body){
+	if ("username" in req.body && "password" in req.body){
 
 		// Post login params
 		var username = req.body.username;
@@ -134,6 +146,7 @@ app.post("/auth", (req,res) => {
 			// Opdater echo
 			echo.success = false;
 			echo.status = "Login not found!";
+			echo.data = req.body;
 
 		}
 
@@ -162,7 +175,7 @@ app.post("/signup", (req,res) => {
 	}
 
 	// Tjek om brugernavn og adgangskode er defineret
-	if (username in req.body && password in req.body){
+	if ("username" in req.body && "password" in req.body){
 
 		// Opret variabler
 		var username = req.body.username;
@@ -204,6 +217,7 @@ app.post("/signup", (req,res) => {
 		// Opdater echo
 		echo.success = false;
 		echo.status = "Username or password not defined";
+		echo.data = req.body;
 
 	}
 
