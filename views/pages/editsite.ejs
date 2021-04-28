@@ -56,10 +56,13 @@
 			
 			<div class="form-group mt-3">
 				<label>Text</label>
-				<textarea required id="inputText" class="w-100 p-2 form-control rounded" style="resize: vertical; min-height: 50px;">
-					<%= siteInfo.text %>
-				</textarea>
+				<textarea required id="inputText" class="w-100 p-2 form-control rounded" style="resize: vertical; min-height: 50px;"><%= siteInfo.text %></textarea>
 			</div>
+
+			<div class="form-group mt-3">
+				<label for="inputFavicon">Upload Logo</label>
+				<input type="file" class="form-control" id="inputFavicon" name="inputFavicon" aria-describedby="Logo / Favicon" placeholder="Upload logo">
+		 	</div>
 		  
 			<button type="submit" class="btn btn-primary mt-2" onclick="submitSave()">Gem</button>
 
@@ -80,62 +83,112 @@
 			var contact_address = $("#inputContactAddress").val();
 			var text = $("#inputText").val();
 			var sub_domain = $("#inputSubDomain").val();
+			var site_id = <%= siteInfo.id %>;
 
-			// Ajax
-			$.ajax({
-				url: "/updateSite",
-				method: "POST",
-				data: {
-					name: name,
-					skabelon_id: skabelon_id,
-					contact_mail: contact_mail,
-					contact_phone: contact_phone,
-					contact_name: contact_name,
-					contact_address: contact_address,
-					text: text,
-					sub_domain: sub_domain
-				},
-			}).done((succ) => {
+			// Favicon upload
+			var favicon_data = $("#inputFavicon").prop("files")[0];
 
-				// Gør dette når funktionen fuldender med success!
-				// console.log("Success", succ);
+			// Konverter til base64
+			var favicon_base64;
 
-				// Tjek om success er true
-				if (succ.success) {
+			// TJek om favicon er blevet uploadet
+			if (favicon_data) {
+				
+				// GetBase64
+				getBase64(favicon_data, result => {
+					favicon_base64 = result;
+				});
 
-					// Ingen problemer
-					$("#loginAlert").css("display", "inherit");
-					$("#loginAlert").removeClass("alert-danger");
-					$("#loginAlert").addClass("alert-success");
-					$("#loginAlert").html(succ.status);
+				// Promise toBase64
+				// toBase64(favicon_data).then((result) => {favicon_base64 = result});
+			}
 
-				}else {
+			// Timeout -- vent på base64 conversion
+			setTimeout(() => {
 
-					// Der er sket en fejl
+				// Ajax
+				$.ajax({
+					url: "/updateSite",
+					method: "POST",
+					data: {
+						name: name,
+						skabelon_id: skabelon_id,
+						contact_mail: contact_mail,
+						contact_phone: contact_phone,
+						contact_name: contact_name,
+						contact_address: contact_address,
+						text: text,
+						sub_domain: sub_domain,
+						site_id: site_id,
+						favicon: favicon_base64
+					},
+				}).done((succ) => {
+
+					// Gør dette når funktionen fuldender med success!
+					// console.log("Success", succ);
+					console.log(favicon_base64);
+
+					// Tjek om success er true
+					if (succ.success) {
+
+						// Ingen problemer
+						$("#loginAlert").css("display", "inherit");
+						$("#loginAlert").removeClass("alert-danger");
+						$("#loginAlert").addClass("alert-success");
+						$("#loginAlert").html(succ.status);
+
+					}else {
+
+						// Der er sket en fejl
+						// Vis loginError
+						$("#loginAlert").css("display", "inherit");
+						$("#loginAlert").removeClass("alert-success");
+						$("#loginAlert").addClass("alert-danger");
+						$("#loginAlert").html(succ.status);
+
+						// Console log
+						console.log(name, skabelon_id, contact_mail, contact_phone, contact_name, contact_address, text, sub_domain);
+
+					}
+
+				}).fail((err) => {
+
+					// Gør dette hvis der sker en fejl
+					// console.log("Fail", err);
+
 					// Vis loginError
 					$("#loginAlert").css("display", "inherit");
 					$("#loginAlert").removeClass("alert-success");
 					$("#loginAlert").addClass("alert-danger");
-					$("#loginAlert").html(succ.status);
+					$("#loginAlert").html(err.status);
 
-					// Console log
-					console.log(name, skabelon_id, contact_mail, contact_phone, contact_name, contact_address, text, sub_domain);
+				})
 
-				}
+			}, 500)
 
-			}).fail((err) => {
+		}
 
-				// Gør dette hvis der sker en fejl
-				// console.log("Fail", err);
+		// Konverter til base 64
+		function getBase64(file, handleData) {
+			var reader = new FileReader();
+			reader.readAsDataURL(file);
+			reader.onload = function () {
+				console.log("reader", reader.result);
+				handleData(reader.result);
+			};
+			reader.onerror = function (error) {
+				console.log('Error: ', error);
+			};
+		}
 
-				// Vis loginError
-				$("#loginAlert").css("display", "inherit");
-				$("#loginAlert").removeClass("alert-success");
-				$("#loginAlert").addClass("alert-danger");
-				$("#loginAlert").html(err.status);
-
-			})
-
+		// Promise version af base64 konversion
+		function toBase64(file) {
+			return new Promise((resolve, reject) => {
+				const reader = new FileReader();
+				reader.readAsDataURL(file);
+				reader.onload = () => resolve(reader.result);
+				reader.onerror = error => reject(error);
+			});
 		}
 
 	</script>

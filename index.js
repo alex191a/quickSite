@@ -526,7 +526,7 @@ app.post("/updateSite", (req,res) => {
 		var loginUserID = req.session.userID;
 
 		// Tjek om alle variabler er udfyldt
-		if (req.session.userID && req.body.name && req.body.skabelon_id && req.body.contact_mail && req.body.contact_phone && req.body.contact_name && req.body.contact_address && req.body.text && req.body.sub_domain){
+		if (req.session.userID && req.body.site_id && req.body.name && req.body.skabelon_id && req.body.contact_mail && req.body.contact_phone && req.body.contact_name && req.body.contact_address && req.body.text && req.body.sub_domain){
 
 			// Alting er udfyldt
 			// Opret variabler
@@ -538,9 +538,11 @@ app.post("/updateSite", (req,res) => {
 			var contact_address = req.body.contact_address;
 			var text = req.body.text;
 			var sub_domain = req.body.sub_domain;
-
+			var site_id = req.body.site_id;
+			var favicon = req.body.favicon;
+			
 			// Tjek om denne hjemmeside tilhører denne bruger der er logget ind.
-			var userCheck = conn.query(`SELECT * FROM Sites where sub_domain = "${sub_domain}" AND user_id = "${loginUserID}"`);
+			var userCheck = conn.query(`SELECT * FROM Sites where id = "${site_id}" AND user_id = "${loginUserID}"`);
 
 			// Tjek resultat
 			if (userCheck.length > 0) {
@@ -569,12 +571,25 @@ app.post("/updateSite", (req,res) => {
 				}
 
 				// Opdater sql
-				var updateSQL = conn.query(`UPDATE Sites SET name = "${name}", skabelon_id = "${skabelon_id}", contact_mail = "${contact_mail}", contact_phone = "${contact_phone}", contact_name = "${contact_name}", contact_address = "${contact_address}", sub_domain = "${sub_domain}", text = "${text}"`);
+				var updateSQL = conn.query(`UPDATE Sites SET name = "${name}", skabelon_id = "${skabelon_id}", contact_mail = "${contact_mail}", contact_phone = "${contact_phone}", contact_name = "${contact_name}", contact_address = "${contact_address}", sub_domain = "${sub_domain}", text = "${text}" WHERE user_id = "${loginUserID}" AND id = "${site_id}"`);
 
 				// Opdater echo
 				echo.success = true;
 				echo.status = "Site updated.";
 				echo.data = updateSQL;
+
+				console.log("Favicon!", req.body);
+
+				// Tjek om favicon skal opdateres
+				if (favicon) {
+
+					// Mysql
+					var updateFavicon = conn.query(`UPDATE Sites SET favicon = "${favicon}" WHERE user_id = "${loginUserID}" AND id = "${site_id}"`);
+
+					// Opdater echo
+					echo.status = echo.status + " Favicon updated"
+
+				}
 
 			}else {
 
@@ -592,6 +607,10 @@ app.post("/updateSite", (req,res) => {
 			// Opdater echo
 			echo.success = false;
 			echo.status = "Not all dependencies have been filled"
+			echo.data = req.body;
+
+			// Log
+			console.log(echo.status, JSON.stringify(req.body));
 
 		}
 
@@ -602,6 +621,7 @@ app.post("/updateSite", (req,res) => {
 		echo.success = false;
 		echo.err = "User not logged in!";
 		echo.errCode = 403;
+		echo.status = echo.err;
 
 	}
 
@@ -636,6 +656,8 @@ app.get("/s/:site/", (req,res) => {
 
 })
 
+// Serve filer i public mappen
+app.use("/public", express.static("public"));
 
 // 404
 app.use("*", (req,res) => {

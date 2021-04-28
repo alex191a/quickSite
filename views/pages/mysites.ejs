@@ -16,12 +16,14 @@
 
 		<div id="mySitesCont" class="container flex-row">
 
-			<div v-for="site in data.data" class="card m-3 flex-row" style="width: 18rem;">
+			<div v-for="site in data.data" class="card m-3 flex-row" style="width: 30rem;">
 				<div class="card-body">
 					<h5 class="card-title">{{ site.name }}</h5>
 					<p class="card-text">{{ site.text }}</p>
+					<p class="card-text"><i>/s/{{ site.sub_domain }}</i></p>
 					<a v-bind:href="'/rediger-site/' + site.sub_domain" class="btn btn-secondary">Rediger side</a>
 					<a v-bind:href="'/s/' + site.sub_domain" class="btn btn-primary">Besøg side</a>
+					<button v-bind:onclick="'deleteSite(' + site.id + ')'" class="btn btn-danger">Slet side</button>
 				</div>
 			</div>
 
@@ -80,6 +82,53 @@
 			})
 
 		})
+
+		// Funktion til sletning af site
+		function deleteSite(site_id) {
+
+			// Confirm
+			if (confirm("Er du sikker?")) {
+
+				// Tjek om site_id er defineret
+				if (site_id) {
+
+					// Ajax call
+					$.ajax({
+						url: "/deleteSite",
+						method: "DELETE",
+						data: {
+							site_id: site_id
+						},
+					}).done(succ => {
+
+						// Success
+						console.log(succ);
+
+						// Tjek success
+						if (succ.success) {
+
+							// Genindlæse
+							window.location.href = "/mysites";
+
+						}
+
+					}).fail(err => {
+
+						// Error
+						console.log(err);
+
+					})
+
+				}else {
+
+					// Alert
+					console.log("Site_id ikke defineret", site_id);
+
+				}
+				
+			}
+
+		}
 		
 	</script>
 
