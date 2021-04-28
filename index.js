@@ -238,6 +238,10 @@ app.get("/removeUser",(req,res)=> {
 	res.send(echo);
 
 })
+app.get("/Logout",(req,res)=> {
+	req.session.destroy
+	res.send("session destroyed")
+})
 // Get sites
 app.get("/getSites", (req,res) => {
 
