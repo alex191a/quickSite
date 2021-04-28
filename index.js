@@ -94,6 +94,24 @@ app.get("/login", (req,res) => {
 
 })
 
+// Opret site
+app.get("/opret-site", (req,res) => {
+
+	// Tjek om brugeren er logget ind
+	if (req.session.loggedIn) {
+		
+		// Render
+		res.render("./pages/createsite", {loginState: req.session});
+	
+	}else {
+
+		// Redir
+		res.redirect("/login");
+
+	}
+
+})
+
 // MySites
 app.get("/mySites", (req,res) => {
 
@@ -392,7 +410,7 @@ app.post("/createSite", (req,res) => {
 
 				// Opdater echo
 				echo.success = true;
-				echo.status = "Site oprettet: " + pbody.name;
+				echo.status = "Site oprettet: /s/" + pbody.sub_domain;
 
 			}
 			
@@ -412,6 +430,7 @@ app.post("/createSite", (req,res) => {
 		echo.success = false;
 		echo.err = "User not logged in!";
 		echo.errCode = 403;
+		echo.status = echo.err;
 
 	}
 

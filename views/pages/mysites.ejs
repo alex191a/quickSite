@@ -14,9 +14,9 @@
 
 		<h2>Dine Sites</h2>
 
-		<div id="mySitesCont" class="container">
+		<div id="mySitesCont" class="container flex-row">
 
-			<div v-for="site in data.data" class="card" style="width: 18rem;">
+			<div v-for="site in data.data" class="card m-3 flex-row" style="width: 18rem;">
 				<div class="card-body">
 					<h5 class="card-title">{{ site.name }}</h5>
 					<p class="card-text">{{ site.text }}</p>
