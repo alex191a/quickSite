@@ -32,6 +32,9 @@ app.use(session({
 	saveUninitialized: true,
 }))
 
+// Sæt view-engine
+app.set("view engine", "ejs");
+
 // Mysql login info
 // Username: quickDB
 // Password: !Password1!
@@ -379,12 +382,16 @@ app.get("/s/:site/", (req,res) => {
 	var siteParam = req.params.site;
 
 	// Tjek om denne site eksisterer
-	var siteCheck = conn.query(`SELECT * FROM Sites WHERE sub_domain = "${siteParam}" LIMIT 1`);
+	var siteCheck = conn.query(`SELECT s.*, sk.placement FROM Sites s LEFT JOIN Skabeloner sk ON s.skabelon_id = sk.id WHERE s.sub_domain = "${siteParam}" LIMIT 1`);
 
 	// Tjek
 	if (siteCheck.length > 0) {
 
-		res.send(siteCheck[0]);
+		// Ny var med kun siteInfo
+		var siteInfo = siteCheck[0];
+
+		// Render med EJS
+		res.render(`./skabeloner/${siteInfo.placement}`, {siteInfo: siteInfo});
 
 	}else {
 
