@@ -63,7 +63,7 @@ const conn2 = mysql2.createConnection({
 // Root
 app.get("/", (req,res) =>{
 
-	res.render("./pages/index", {loginState: req.body});
+	res.render("./pages/index", {loginState: req.session});
 
 	// Tjek om logget ind
 	/* if (req.session.loggedIn) {
@@ -90,7 +90,55 @@ app.get("/", (req,res) =>{
 app.get("/login", (req,res) => {
 
 	// Render
-	res.render("./pages/login", {loginState: req.body})
+	res.render("./pages/login", {loginState: req.session})
+
+})
+
+// MySites
+app.get("/mySites", (req,res) => {
+
+	// Render
+	res.render("./pages/mysites", {loginState: req.session})
+
+})
+
+// Rediger site
+app.get("/rediger-site/:site_domain/", (req,res) => {
+
+	// Opret var til denne
+	var site_domain = req.params.site_domain;
+
+	// Tjek om brugeren er logget ind.
+	if (req.session.loggedIn) {
+		
+		// Opret vars til logget ind bruger
+		var loginUser = req.session.username;
+		var loginUserID = req.session.userID;
+	
+		// Tjek om dette domæne tilhører denne bruger
+		var domainCheck = conn.query(`SELECT * FROM Sites WHERE user_id = "${loginUserID}" AND sub_domain = "${site_domain}"`);
+
+		// Tjek resultatet
+		if (domainCheck.length > 0) {
+
+			// Render
+			res.render("./pages/editsite", {loginState: req.session, siteInfo: domainCheck[0]});
+
+		}else {
+
+			// Redir
+			res.redirect("/login");
+
+			// res.send(domainCheck);
+
+		}
+
+	}else {
+
+		// Redirect
+		res.redirect("/login");
+
+	}
 
 })
 
@@ -286,6 +334,7 @@ app.get("/getSites", (req,res) => {
 		echo.success = false;
 		echo.err = "User not logged in!";
 		echo.errCode = 403;
+		echo.status = echo.err;
 
 	}
 
@@ -432,8 +481,110 @@ app.delete("/deleteSite", (req,res) => {
 	// Send echo
 	res.send(echo)
 
+})
 
-	
+// Opdater site
+app.post("/updateSite", (req,res) => {
+
+	// Opret echo som sendes om svar til sidst
+	var echo = {
+		err: "",
+		errCode: 0,
+		success: false,
+		status: "",
+		data: ""
+	}
+
+	// Tjek om brugeren er logget ind.
+	if (req.session.loggedIn) {
+
+		// Opret login
+		var loginUser = req.session.username;
+		var loginUserID = req.session.userID;
+
+		// Tjek om alle variabler er udfyldt
+		if (req.session.userID && req.body.name && req.body.skabelon_id && req.body.contact_mail && req.body.contact_phone && req.body.contact_name && req.body.contact_address && req.body.text && req.body.sub_domain){
+
+			// Alting er udfyldt
+			// Opret variabler
+			var name = req.body.name;
+			var skabelon_id = req.body.skabelon_id;
+			var contact_mail = req.body.contact_mail;
+			var contact_phone = req.body.contact_phone;
+			var contact_name = req.body.contact_name;
+			var contact_address = req.body.contact_address;
+			var text = req.body.text;
+			var sub_domain = req.body.sub_domain;
+
+			// Tjek om denne hjemmeside tilhører denne bruger der er logget ind.
+			var userCheck = conn.query(`SELECT * FROM Sites where sub_domain = "${sub_domain}" AND user_id = "${loginUserID}"`);
+
+			// Tjek resultat
+			if (userCheck.length > 0) {
+
+				// Tjek om subdomænet er blevet ændret
+				var domainChangeCheck = conn.query(`SELECT * FROM Sites where sub_domain = "${sub_domain}" AND user_id = "${loginUserID}"`);
+
+				// Tjek resulstatet
+				if (domainChangeCheck.length > 0) {
+
+					// Tjek domænet allerede er i brug
+					var domainUsedCheck = conn.query(`SELECT * FROM Sites where sub_domain = "${sub_domain}" AND user_id != "${loginUserID}"`)
+
+					// Tjek resultatet
+					if (domainUsedCheck.length > 0) {
+
+						// Dette domæner er allerede i brug.
+						echo.success = false;
+						echo.err = "Sub-domain already in use.";
+						echo.errCode = 100;
+
+						return res.send(echo);
+
+					}
+
+				}
+
+				// Opdater sql
+				var updateSQL = conn.query(`UPDATE Sites SET name = "${name}", skabelon_id = "${skabelon_id}", contact_mail = "${contact_mail}", contact_phone = "${contact_phone}", contact_name = "${contact_name}", contact_address = "${contact_address}", sub_domain = "${sub_domain}", text = "${text}"`);
+
+				// Opdater echo
+				echo.success = true;
+				echo.status = "Site updated.";
+				echo.data = updateSQL;
+
+			}else {
+
+				// Opdater echo
+				echo.success = false;
+				echo.status = "Sites does not exists or does not belong to you!";
+				echo.err = echo.status;
+				echo.errCode = 403;
+				echo.data = userCheck;
+
+			}
+
+		}else {
+
+			// Opdater echo
+			echo.success = false;
+			echo.status = "Not all dependencies have been filled"
+
+		}
+
+	}else {
+
+		// Bruger ikke logget ind
+		// Opdater echo
+		echo.success = false;
+		echo.err = "User not logged in!";
+		echo.errCode = 403;
+
+	}
+
+	// Send echo
+	res.send(echo);
+
 })
 
 // Render site

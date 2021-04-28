@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>QuickSite</title>
+	<%- include("../partials/head") %>
+</head>
+<body>
+	<%- include("../partials/navbar")%>
+	
+	<div class="container mt-3">
+
+		<h2>Dine Sites</h2>
+
+		<div id="mySitesCont" class="container">
+
+			<div v-for="site in data.data" class="card" style="width: 18rem;">
+				<div class="card-body">
+					<h5 class="card-title">{{ site.name }}</h5>
+					<p class="card-text">{{ site.text }}</p>
+					<a v-bind:href="'/rediger-site/' + site.sub_domain" class="btn btn-secondary">Rediger side</a>
+					<a v-bind:href="'/s/' + site.sub_domain" class="btn btn-primary">Besøg side</a>
+				</div>
+			</div>
+
+		</div>
+
+	</div>
+
+	<script>
+
+		$(document).ready(function() {
+
+			console.log("Doc ready!")
+
+			// Fetch data fra api
+			$.ajax({
+				url: "/getSites",
+				method: "GET",
+			}).done((succ) => {
+
+				// Gør dette når funktionen fuldender med success!
+				// console.log("Success", succ);
+
+				// Tjek om success er true
+				if (succ.success) {
+
+					// Ingen problemer
+					// Vue opstart
+					var mySitesCont = new Vue({
+						el: '#mySitesCont',
+						data: {
+							data: succ
+						}
+					})
+
+					// Show
+					// $("#mySitesCont").removeClass("d-none");
+
+				}else {
+
+					// Der er sket en fejl
+					alert(succ.status);
+
+					// Redir
+					window.location.href = "/login";
+
+				}
+
+			}).fail((err) => {
+
+				// Gør dette hvis der sker en fejl
+				console.log("Fail", err);
+
+				// Vis loginError
+		
+
+			})
+
+		})
+		
+	</script>
+
+</body>
+</html>

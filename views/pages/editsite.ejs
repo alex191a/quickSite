@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>QuickSite</title>
+	<%- include("../partials/head") %>
+</head>
+<body>
+	<%- include("../partials/navbar")%>
+	
+	<div class="container mt-3">
+
+		<h2>Rediger site</h2>
+
+		<div class="p-4">
+			<div id="loginAlert" class="alert alert-danger" style="display: none;" role="alert">
+				...
+			</div>
+
+			<div class="form-group mt-3">
+			  	<label for="inputName">Navn</label>
+			  	<input value="<%= siteInfo.name %>" type="email" class="form-control" id="inputName" name="inputName" aria-describedby="Navn" placeholder="Indtast navn">
+			</div>
+
+			<div class="form-group mt-3">
+				<label for="inputSkabelon">Skabelon</label>
+				<input value="<%= siteInfo.skabelon_id %>" type="text" class="form-control" id="inputSkabelon" name="inputSkabelon" aria-describedby="Skabelon" placeholder="Indtast skabelon ID">
+		 	</div>
+
+			 <div class="form-group mt-3">
+				<label for="inputContactMail">Kontakt Mail</label>
+				<input value="<%= siteInfo.contact_mail %>" type="email" class="form-control" id="inputContactMail" name="inputContactMail" aria-describedby="Mail" placeholder="Indtast Mail">
+		 	</div>
+
+			<div class="form-group mt-3">
+				<label for="inputContactPhone">Kontakt Telefon</label>
+				<input value="<%= siteInfo.contact_phone %>" type="text" class="form-control" id="inputContactPhone" name="inputContactPhone" aria-describedby="Telefon" placeholder="Indtast Telefon">
+		 	</div>
+
+			<div class="form-group mt-3">
+				<label for="inputContactAddress">Kontakt Addresse</label>
+				<input value="<%= siteInfo.contact_address %>" type="text" class="form-control" id="inputContactAddress" name="inputContactAddress" aria-describedby="Adresse" placeholder="Indtast Adresse">
+		 	</div>
+
+			<div class="form-group mt-3">
+				<label for="inputContactName">Kontakt Navn</label>
+				<input value="<%= siteInfo.contact_name %>" type="text" class="form-control" id="inputContactName" name="inputContactName" aria-describedby="Kontakt Navn" placeholder="Indtast kontakt navn">
+		 	</div>
+
+			<div class="form-group mt-3">
+				<label for="inputSubDomain">Sub-domain</label>
+				<input value="<%= siteInfo.sub_domain %>" type="text" class="form-control" id="inputSubDomain" name="inputSubDomain" aria-describedby="Sub Domæne" placeholder="Indtast Sub-Domæne">
+		 	</div>
+			
+			<div class="form-group mt-3">
+				<label>Text</label>
+				<textarea id="inputText" class="w-100 p-2 form-control rounded" style="resize: vertical; min-height: 50px;">
+					<%= siteInfo.text %>
+				</textarea>
+			</div>
+		  
+			<button type="submit" class="btn btn-primary mt-2" onclick="submitSave()">Gem</button>
+
+		</div>
+
+	</div>
+
+	<script>
+
+		function submitSave() {
+
+			// Opret variabler
+			var name = $("#inputName").val();
+			var skabelon_id = $("#inputSkabelon").val();
+			var contact_mail = $("#inputContactMail").val();
+			var contact_phone = $("#inputContactPhone").val();
+			var contact_name = $("#inputContactName").val();
+			var contact_address = $("#inputContactAddress").val();
+			var text = $("#inputText").val();
+			var sub_domain = $("#inputSubDomain").val();
+
+			// Ajax
+			$.ajax({
+				url: "/updateSite",
+				method: "POST",
+				data: {
+					name: name,
+					skabelon_id: skabelon_id,
+					contact_mail: contact_mail,
+					contact_phone: contact_phone,
+					contact_name: contact_name,
+					contact_address: contact_address,
+					text: text,
+					sub_domain: sub_domain
+				},
+			}).done((succ) => {
+
+				// Gør dette når funktionen fuldender med success!
+				// console.log("Success", succ);
+
+				// Tjek om success er true
+				if (succ.success) {
+
+					// Ingen problemer
+					$("#loginAlert").css("display", "inherit");
+					$("#loginAlert").removeClass("alert-danger");
+					$("#loginAlert").addClass("alert-success");
+					$("#loginAlert").html(succ.status);
+
+				}else {
+
+					// Der er sket en fejl
+					// Vis loginError
+					$("#loginAlert").css("display", "inherit");
+					$("#loginAlert").removeClass("alert-success");
+					$("#loginAlert").addClass("alert-danger");
+					$("#loginAlert").html(succ.status);
+
+					// Console log
+					console.log(name, skabelon_id, contact_mail, contact_phone, contact_name, contact_address, text, sub_domain);
+
+				}
+
+			}).fail((err) => {
+
+				// Gør dette hvis der sker en fejl
+				// console.log("Fail", err);
+
+				// Vis loginError
+				$("#loginAlert").css("display", "inherit");
+				$("#loginAlert").removeClass("alert-success");
+				$("#loginAlert").addClass("alert-danger");
+				$("#loginAlert").html(err.status);
+
+			})
+
+		}
+
+	</script>
+
+</body>
+</html>

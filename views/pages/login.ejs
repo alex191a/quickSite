@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Login - QuickSite</title>
+	<%- include("../partials/head") %>
+</head>
+<body>
+	<%- include("../partials/navbar")%>
+	
+	<div class="container mt-3 w-75" style="max-width: 650px;">
+
+		<div>
+			<div id="loginAlert" class="alert alert-danger" style="display: none;" role="alert">
+				...
+			</div>
+			<div class="form-group">
+			  	<label for="inputUsername">Brugernavn</label>
+			  	<input type="email" class="form-control" id="inputUsername" name="username" aria-describedby="Username" placeholder="Indtast brugernavn">
+			</div>
+			<div class="form-group mt-3">
+			  	<label for="inputPassword">Adgangskode</label>
+			  	<input type="password" class="form-control" id="inputPassword" name="password" placeholder="Indtast adgangskode">
+			</div>
+			<button type="submit" class="btn btn-primary mt-2" onclick="submitLogin($('#inputUsername').val(),$('#inputPassword').val())">Login</button>
+
+		</div>
+
+		<a href="/opret-bruger">
+			<button class="btn btn-secondary mt-5">
+				Opret bruger
+			</button>
+		</a>
+
+	</div>
+
+	<script>
+
+		// Login funktion
+		function submitLogin(username, password) {
+
+			console.log("Submit")
+
+			// Stop reload
+			// e.preventDefault();
+
+			// Ajax call
+			$.ajax({
+				url: "/auth",
+				method: "POST",
+				data: {
+					username: username,
+					password: password
+				},
+			}).done((succ) => {
+
+				// Gør dette når funktionen fuldender med success!
+				// console.log("Success", succ);
+
+				// Tjek om success er true
+				if (succ.success) {
+
+					// Ingen problemer
+					$("#loginAlert").css("display", "inherit");
+					$("#loginAlert").removeClass("alert-danger");
+					$("#loginAlert").addClass("alert-success");
+					$("#loginAlert").html(succ.status);
+
+					// Redirect
+					window.location.href = "/mySites";
+
+				}else {
+
+					// Der er sket en fejl
+					// Vis loginError
+					$("#loginAlert").css("display", "inherit");
+					$("#loginAlert").removeClass("alert-success");
+					$("#loginAlert").addClass("alert-danger");
+					$("#loginAlert").html(succ.status);
+
+				}
+
+			}).fail((err) => {
+
+				// Gør dette hvis der sker en fejl
+				// console.log("Fail", err);
+
+				// Vis loginError
+				$("#loginAlert").css("display", "inherit");
+				$("#loginAlert").removeClass("alert-success");
+				$("#loginAlert").addClass("alert-danger");
+				$("#loginAlert").html(err.status);
+
+			})
+
+		}
+
+	</script>
+
+</body>
+</html>
