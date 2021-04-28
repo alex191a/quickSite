@@ -224,7 +224,34 @@ app.post("/signup", (req,res) => {
 	res.send(echo);
 
 })
+app.get("/removeUser",(req,res)=> {
+	// 
+	let echo ={
+		err: "",
+		errCode: 0,
+		success: false,
+		status:"",
+		data: {}
+	}
+	if(req.session.loggedIn){
+		let loginUser =req.session.username;
+		let loginUserID = req.session.userID
 
+		let result = conn.query(`DELETE FROM Sites WHERE user_id = "${loginUserID}"`);
+		let result2 = conn.query(`DELETE FROM Users WHERE id = "${loginUserID}"`);
+		echo.data ={result, result2}
+		echo.success= true;
+		echo.status = "Delete user and users sites"
+
+	}
+	else{
+		echo.success= false;
+		echo.err= "user not logged in";
+		echo.errCode = 403;
+	}
+	res.send(echo);
+
+})
 // Get sites
 app.get("/getSites", (req,res) => {
 
