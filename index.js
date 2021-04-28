@@ -93,47 +93,57 @@ app.post("/auth", (req,res) => {
 		status: ""
 	}
 
-	// Post login params
-	var username = req.body.username;
-	var password = req.body.password;
+	if (username in req.body && password in req.body){
 
-	// Tjek om dette brugernavn findes
-	var result = conn.query(`SELECT * FROM Users WHERE username = "${username}" LIMIT 1`);
+		// Post login params
+		var username = req.body.username;
+		var password = req.body.password;
 
-	// Tjek om denne bruger findes i result array
-	if (result.length > 0) {
-		
-		// Opret variabler
-		var passwordHash = result[0].password;
-		var userID = result[0].id;
+		// Tjek om dette brugernavn findes
+		var result = conn.query(`SELECT * FROM Users WHERE username = "${username}" LIMIT 1`);
 
-		// Tjek om passwords stemmer overens
-		if (bcrypt.compareSync(password, passwordHash)) {
+		// Tjek om denne bruger findes i result array
+		if (result.length > 0) {
+			
+			// Opret variabler
+			var passwordHash = result[0].password;
+			var userID = result[0].id;
 
-			// Opdater echo
-			echo.success = true;
-			echo.status = "Login found and password correct!"
+			// Tjek om passwords stemmer overens
+			if (bcrypt.compareSync(password, passwordHash)) {
 
-			// Sæt session token
-			req.session.loggedIn = true;
-			req.session.username = username;
-			req.session.userID = userID;
+				// Opdater echo
+				echo.success = true;
+				echo.status = "Login found and password correct!"
+
+				// Sæt session token
+				req.session.loggedIn = true;
+				req.session.username = username;
+				req.session.userID = userID;
+
+			}else {
+
+				// Opdater echo
+				echo.success = false;
+				echo.status = "Login found but password is incorrect!";
+
+			}
 
 		}else {
-
+			
 			// Opdater echo
 			echo.success = false;
-			echo.status = "Login found but password is incorrect!";
+			echo.status = "Login not found!";
 
 		}
 
 	}else {
-		
+
 		// Opdater echo
 		echo.success = false;
-		echo.status = "Login not found!";
+		echo.status = "Username or password not defined";
 
-	}
+	}	
 	
 	// Send echo
 	res.send(echo);
@@ -151,39 +161,49 @@ app.post("/signup", (req,res) => {
 		status: ""
 	}
 
-	// Opret variabler
-	var username = req.body.username;
-	var password = req.body.password;
+	// Tjek om brugernavn og adgangskode er defineret
+	if (username in req.body && password in req.body){
 
-	// Log
-	console.log(`New user request: username: ${username} - pass: ${password}`)
+		// Opret variabler
+		var username = req.body.username;
+		var password = req.body.password;
 
-	// Hash password
-	const salt = bcrypt.genSaltSync(saltRounds);
-	const passwordHash = bcrypt.hashSync(password, salt);
+		// Log
+		console.log(`New user request: username: ${username} - pass: ${password}`)
 
-	// Tjek om brugernavnet allerede findes i DB.
-	var userCheck = conn.query(`SELECT * FROM Users WHERE username = "${username}"`);
+		// Hash password
+		const salt = bcrypt.genSaltSync(saltRounds);
+		const passwordHash = bcrypt.hashSync(password, salt);
 
-	if (!(userCheck.length > 0)) {
+		// Tjek om brugernavnet allerede findes i DB.
+		var userCheck = conn.query(`SELECT * FROM Users WHERE username = "${username}"`);
 
-		// Opret bruger i DB
-		var result = conn.query(`INSERT INTO Users (username, password) VALUES ("${username}", "${passwordHash}")`);
+		if (!(userCheck.length > 0)) {
 
-		console.log("Results", results);
-		console.log("Fields", fields);
+			// Opret bruger i DB
+			var result = conn.query(`INSERT INTO Users (username, password) VALUES ("${username}", "${passwordHash}")`);
 
-		// Opdater echo
-		echo.success = true;
-		echo.status = "User created with username: " + username;
+			console.log("Results", result);
+
+			// Opdater echo
+			echo.success = true;
+			echo.status = "User created with username: " + username;
+
+		}else {
+
+			// Brugernavnet findes allerede
+			// Opdater echo
+			echo.success = false;
+			echo.err = `Username: '${username}' already exists!`;
+			echo.errCode = 500;
+
+		}
 
 	}else {
 
-		// Brugernavnet findes allerede
 		// Opdater echo
 		echo.success = false;
-		echo.err = `Username: '${username}' already exists!`;
-		echo.errCode = 500;
+		echo.status = "Username or password not defined";
 
 	}
 
