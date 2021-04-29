@@ -83,7 +83,7 @@ app.get("/", (req,res) =>{
 })
 
 // Start ny "fake" session
-app.get("/session", (req,res) => {
+/* app.get("/session", (req,res) => {
 
 	// Start session
 	req.session.loggedIn = true;
@@ -93,7 +93,7 @@ app.get("/session", (req,res) => {
 	// Send tilbage til startsiden
 	res.redirect("/");
 
-})
+}) */
 
 // Login Side
 app.get("/login", (req,res) => {
