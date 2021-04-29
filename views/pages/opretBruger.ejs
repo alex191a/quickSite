@@ -50,7 +50,7 @@
 
 			// Ajax call
 			$.ajax({
-				url: "/opret-bruger",
+				url: "/signup",
 				method: "POST",
 				data: {
 					username: username,
@@ -73,6 +73,9 @@
 					// Redirect
 					window.location.href = "/login";
 
+					// Console.log
+					console.log("Succ", succ);
+
 				}else {
 
 					// Der er sket en fejl
@@ -81,6 +84,9 @@
 					$("#loginAlert").removeClass("alert-success");
 					$("#loginAlert").addClass("alert-danger");
 					$("#loginAlert").html(succ.status);
+
+					// Console.log
+					console.log("Fail", succ);
 
 				}
 
@@ -94,6 +100,9 @@
 				$("#loginAlert").removeClass("alert-success");
 				$("#loginAlert").addClass("alert-danger");
 				$("#loginAlert").html(err.status);
+
+				// Console.log
+				console.log("Err", err);
 
 			})
 

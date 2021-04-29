@@ -73,6 +73,9 @@
 					// Redirect
 					window.location.href = "/mySites";
 
+					// Console.log
+					console.log("Succ", succ);
+
 				}else {
 
 					// Der er sket en fejl
@@ -81,6 +84,8 @@
 					$("#loginAlert").removeClass("alert-success");
 					$("#loginAlert").addClass("alert-danger");
 					$("#loginAlert").html(succ.status);
+
+					console.log("Fail", succ);
 
 				}
 
@@ -94,6 +99,9 @@
 				$("#loginAlert").removeClass("alert-success");
 				$("#loginAlert").addClass("alert-danger");
 				$("#loginAlert").html(err.status);
+
+				// Fail
+				console.log("Err", err);
 
 			})
 
