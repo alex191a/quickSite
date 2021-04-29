@@ -115,8 +115,24 @@ app.get("/opret-site", (req,res) => {
 // MySites
 app.get("/mySites", (req,res) => {
 
-	// Render
-	res.render("./pages/mysites", {loginState: req.session})
+	if (req.session.loggedIn) {
+
+		// Opret login vars
+		var loginUser = req.session.username;
+		var loginUserID = req.session.userID;
+
+		// Get alle sites
+		var siteInfo = conn.query(`SELECT * FROM Sites WHERE user_id = ${loginUserID}`);
+
+		// Render
+		res.render("./pages/mysites", {loginState: req.session, siteInfo: siteInfo});
+
+	}else {
+
+		// Redir
+		res.redirect("/login");
+
+	}
 
 })
 
@@ -384,7 +400,22 @@ app.post("/createSite", (req,res) => {
 		/* name, contact_mail, contact_phone, contact_name, contact_address, text, skabelon_id */
 		var pbody = req.body;
 
-		if (pbody.name && pbody.contact_mail && pbody.contact_phone && pbody.contact_name && pbody.contact_address && pbody.text && pbody.skabelon_id && pbody.sub_domain) {
+		if (pbody.name && pbody.favicon && pbody.contact_mail && pbody.contact_phone && pbody.contact_name && pbody.contact_address && pbody.text && pbody.skabelon_id && pbody.sub_domain) {
+
+			// Opret variabler
+			var name = req.body.name;
+			var skabelon_id = req.body.skabelon_id;
+			var contact_mail = req.body.contact_mail;
+			var contact_phone = req.body.contact_phone;
+			var contact_name = req.body.contact_name;
+			var contact_address = req.body.contact_address;
+			var text = req.body.text;
+			var sub_domain = req.body.sub_domain;
+			var site_id = req.body.site_id;
+			var favicon = req.body.favicon;
+
+			// Url encode sub_domain
+			sub_domain = encodeURI(sub_domain.replaceAll(" ", "-").toLowerCase());
 
 			// Alle vars er sat
 			echo.success = true;
@@ -392,7 +423,7 @@ app.post("/createSite", (req,res) => {
 			echo.data = pbody;
 
 			// Tjek om sub_domain er unik
-			var subCheck = conn.query(`SELECT * FROM Sites WHERE sub_domain = "${pbody.sub_domain}"`);
+			var subCheck = conn.query(`SELECT * FROM Sites WHERE sub_domain = "${sub_domain}"`);
 
 			// tjek
 			if (subCheck.length > 0) {
@@ -404,13 +435,13 @@ app.post("/createSite", (req,res) => {
 			}else {
 
 				// Opret ny site i mysql
-				var result = conn.query(`INSERT INTO Sites (name, contact_mail, contact_phone, contact_name, contact_address, text, skabelon_id, user_id, sub_domain) VALUES ("${pbody.name}", "${pbody.contact_mail}", "${pbody.contact_phone}", "${pbody.contact_name}", "${pbody.contact_address}", "${pbody.text}", "${pbody.skabelon_id}", "${req.session.userID}", "${pbody.sub_domain}")`)
+				var result = conn.query(`INSERT INTO Sites (name, contact_mail, contact_phone, contact_name, contact_address, text, skabelon_id, user_id, sub_domain, favicon) VALUES ("${name}", "${contact_mail}", "${contact_phone}", "${contact_name}", "${contact_address}", "${text}", "${skabelon_id}", "${req.session.userID}", "${sub_domain}", "${favicon}")`);
 				
 				console.log("Results", result);
 
 				// Opdater echo
 				echo.success = true;
-				echo.status = "Site oprettet: /s/" + pbody.sub_domain;
+				echo.status = "Site oprettet: /s/" + sub_domain;
 
 			}
 			
@@ -540,6 +571,9 @@ app.post("/updateSite", (req,res) => {
 			var sub_domain = req.body.sub_domain;
 			var site_id = req.body.site_id;
 			var favicon = req.body.favicon;
+
+			// Url encode sub_domain
+			sub_domain = encodeURI(sub_domain.replaceAll(" ", "-").toLowerCase());
 			
 			// Tjek om denne hjemmeside tilhører denne bruger der er logget ind.
 			var userCheck = conn.query(`SELECT * FROM Sites where id = "${site_id}" AND user_id = "${loginUserID}"`);
