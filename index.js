@@ -454,7 +454,7 @@ app.post("/createSite", (req,res) => {
 			}
 
 			// Url encode sub_domain
-			sub_domain = encodeURI(sub_domain.replaceAll(" ", "-").toLowerCase());
+			sub_domain = sub_domain.replaceAll(" ", "-").toLowerCase();
 
 			// Alle vars er sat
 			echo.success = true;
@@ -686,7 +686,7 @@ app.post("/updateSite", (req,res) => {
 			var favicon_file;
 
 			// Url encode sub_domain
-			sub_domain = encodeURI(sub_domain.replaceAll(" ", "-").toLowerCase());
+			sub_domain = sub_domain.replaceAll(" ", "-").toLowerCase();
 			
 			// Tjek om denne hjemmeside tilhører denne bruger der er logget ind.
 			var userCheck = conn.query(`SELECT * FROM Sites where id = "${site_id}" AND user_id = "${loginUserID}"`);
