@@ -33,5 +33,12 @@
 				<%}%>
 			</ul>
 		</div>
+
+		<%if (loginState.loggedIn) {%>
+
+			<a href="/logout" class="btn btn-danger">Log ud!</a>
+
+		<% } %>
+
 	</div>
 </nav>
