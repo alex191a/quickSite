@@ -477,35 +477,36 @@ app.post("/createSite", (req,res) => {
   			uploadPath = __dirname + '/public/' + sub_domain + '/' + favicon_file.name;
 
 			// Tjek om mappen til sub-domænet eksisterer
-			fs.access(`${__dirname}/public/${sub_domain}/`, function(error) {
+			fs.access(`./public/${sub_domain}/`, function(error) {
 				if (error) {
 				
 					// Opret mappen
-					fs.mkdirSync(`${__dirname}/public/${sub_domain}/`)
+					fs.mkdirSync(`./public/${sub_domain}/`)
 
 				}
 
-			});
+				// Flyt filen
+				// Use the mv() method to place the file somewhere on your server
+				favicon_file.mv(uploadPath, function(err) {
+					if (err) {
+						
+						console.log(err);
 
-			// Flyt filen
-			// Use the mv() method to place the file somewhere on your server
-			favicon_file.mv(uploadPath, function(err) {
-				if (err) {
-					
-					console.log(err);
+						// Opdater echo
+						echo.success = false;
+						echo.status = err;
+						echo.err = err;
+
+						// return res.send(echo);
+
+					}
 
 					// Opdater echo
-					echo.success = false;
-					echo.status = err;
-					echo.err = err;
+					echo.success = true;
+					echo.status = "Favicon opdateret";
 
-					// return res.send(echo);
+				});
 
-				}
-
-				// Opdater echo
-				echo.success = true;
-				echo.status = "Favicon opdateret";
 
 			});
 
