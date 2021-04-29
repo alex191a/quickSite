@@ -5,6 +5,9 @@ const express = require("express");
 const app = express();
 const port = 3050;
 
+// Fs
+const fs = require("fs");
+
 // Express sessions
 const session = require("express-session");
 
@@ -14,14 +17,19 @@ const saltRounds = 10;
 
 // Body parser m.m. til POST info
 var bodyParser = require('body-parser');
-var multer = require('multer');
-var upload = multer(); 
+/* var multer = require('multer');
+var upload = multer();  */
 var cookieParser = require('cookie-parser');
+const fileUpload = require('express-fileupload');
+app.use(fileUpload({
+    useTempFiles : true,
+    tempFileDir : '/tmp/'
+}));
 
 // Opstart disse
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true })); 
-app.use(upload.array());
+/* app.use(upload.array()); */
 app.use(cookieParser());
 
 // Opstart sessions
@@ -75,16 +83,17 @@ app.get("/", (req,res) =>{
 })
 
 // Start ny "fake" session
-/* app.get("/session", (req,res) => {
+app.get("/session", (req,res) => {
 
 	// Start session
 	req.session.loggedIn = true;
-	req.session.username = "mortenand123"
+	req.session.username = "Peter";
+	req.session.userID = 8;
 
 	// Send tilbage til startsiden
 	res.redirect("/");
 
-}) */
+})
 
 // Login Side
 app.get("/login", (req,res) => {
@@ -408,7 +417,7 @@ app.post("/createSite", (req,res) => {
 		/* name, contact_mail, contact_phone, contact_name, contact_address, text, skabelon_id */
 		var pbody = req.body;
 
-		if (pbody.name && pbody.favicon && pbody.contact_mail && pbody.contact_phone && pbody.contact_name && pbody.contact_address && pbody.text && pbody.skabelon_id && pbody.sub_domain) {
+		if (pbody.name && pbody.contact_mail && pbody.contact_phone && pbody.contact_name && pbody.contact_address && pbody.text && pbody.skabelon_id && pbody.sub_domain) {
 
 			// Opret variabler
 			var name = req.body.name;
@@ -430,6 +439,59 @@ app.post("/createSite", (req,res) => {
 			echo.status = "Alle variabler fundet!";
 			echo.data = pbody;
 
+			// Tjek om der er blevet uploadet en fil
+			if (!req.files || Object.keys(req.files).length === 0) {
+				
+				// Opdater echo
+				echo.success = false;
+				echo.err = "No files were uploaded!";
+				echo.status = echo.err;
+
+				return res.send(echo);
+
+			}
+
+			// Upload af file
+			var uploadPath;
+			var favicon_file;
+
+			// Definer filen
+			favicon_file = req.files.favicon;
+  			uploadPath = __dirname + '/public/' + sub_domain + '/' + favicon_file.name;
+
+			// Tjek om mappen til sub-domænet eksisterer
+			fs.access(`${__dirname}/public/${sub_domain}/`, function(error) {
+				if (error) {
+				
+					// Opret mappen
+					fs.mkdirSync(`${__dirname}/public/${sub_domain}/`)
+
+				}
+
+			});
+
+			// Flyt filen
+			// Use the mv() method to place the file somewhere on your server
+			favicon_file.mv(uploadPath, function(err) {
+				if (err) {
+					
+					console.log(err);
+
+					// Opdater echo
+					echo.success = false;
+					echo.status = err;
+					echo.err = err;
+
+					// return res.send(echo);
+
+				}
+
+				// Opdater echo
+				echo.success = true;
+				echo.status = "Favicon opdateret";
+
+			});
+
 			// Tjek om sub_domain er unik
 			var subCheck = conn.query(`SELECT * FROM Sites WHERE sub_domain = "${sub_domain}"`);
 
@@ -443,7 +505,7 @@ app.post("/createSite", (req,res) => {
 			}else {
 
 				// Opret ny site i mysql
-				var result = conn.query(`INSERT INTO Sites (name, contact_mail, contact_phone, contact_name, contact_address, text, skabelon_id, user_id, sub_domain, favicon) VALUES ("${name}", "${contact_mail}", "${contact_phone}", "${contact_name}", "${contact_address}", "${text}", "${skabelon_id}", "${req.session.userID}", "${sub_domain}", "${favicon}")`);
+				var result = conn.query(`INSERT INTO Sites (name, contact_mail, contact_phone, contact_name, contact_address, text, skabelon_id, user_id, sub_domain, favicon) VALUES ("${name}", "${contact_mail}", "${contact_phone}", "${contact_name}", "${contact_address}", "${text}", "${skabelon_id}", "${req.session.userID}", "${sub_domain}", "/public/${sub_domain}/${favicon_file.name}")`);
 				
 				console.log("Results", result);
 
@@ -578,7 +640,10 @@ app.post("/updateSite", (req,res) => {
 			var text = req.body.text;
 			var sub_domain = req.body.sub_domain;
 			var site_id = req.body.site_id;
-			var favicon = req.body.favicon;
+			
+			// Upload af file
+			var uploadPath;
+			var favicon_file;
 
 			// Url encode sub_domain
 			sub_domain = encodeURI(sub_domain.replaceAll(" ", "-").toLowerCase());
@@ -622,14 +687,48 @@ app.post("/updateSite", (req,res) => {
 
 				console.log("Favicon!", req.body);
 
-				// Tjek om favicon skal opdateres
-				if (favicon) {
+				// Tjek om der er blevet uploadet en fil
+				if (req.files || !(Object.keys(req.files).length === 0)) {
 
-					// Mysql
-					var updateFavicon = conn.query(`UPDATE Sites SET favicon = "${favicon}" WHERE user_id = "${loginUserID}" AND id = "${site_id}"`);
+					// Definer filen
+					favicon_file = req.files.favicon;
+					uploadPath = __dirname + '/public/' + sub_domain + '/' + favicon_file.name;
 
-					// Opdater echo
-					echo.status = echo.status + " Favicon updated"
+					// Tjek om mappen til sub-domænet eksisterer
+					fs.access(`${__dirname}/public/${sub_domain}/`, function(error) {
+						if (error) {
+						
+							// Opret mappen
+							fs.mkdirSync(`${__dirname}/public/${sub_domain}/`)
+
+						}
+
+					});
+
+					// Flyt filen
+					// Use the mv() method to place the file somewhere on your server
+					favicon_file.mv(uploadPath, function(err) {
+						if (err) {
+							
+							console.log(err);
+
+							// Opdater echo
+							echo.success = false;
+							echo.status = err;
+							echo.err = err;
+
+							// return res.send(echo);
+
+						}
+
+						// Mysql
+						var updateFavicon = conn.query(`UPDATE Sites SET favicon = "/public/${sub_domain}/${favicon_file.name}" WHERE user_id = "${loginUserID}" AND id = "${site_id}"`);
+
+						// Opdater echo
+						echo.success = true;
+						echo.status = echo.status + " Favicon updated"
+
+					});
 
 				}
 
@@ -649,10 +748,13 @@ app.post("/updateSite", (req,res) => {
 			// Opdater echo
 			echo.success = false;
 			echo.status = "Not all dependencies have been filled"
-			echo.data = req.body;
+			echo.data = [
+				req.body,
+				req.session
+			];
 
 			// Log
-			console.log(echo.status, JSON.stringify(req.body));
+			console.log(echo.status, JSON.stringify(req.body), req.session);
 
 		}
 

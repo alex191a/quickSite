@@ -14,7 +14,7 @@
 
 		<h2>Rediger site</h2>
 
-		<div class="p-4 pt-1">
+		<div id="editForm" class="p-4 pt-1">
 			<div id="loginAlert" class="alert alert-danger" style="display: none;" role="alert">
 				...
 			</div>
@@ -89,20 +89,18 @@
 			// Favicon upload
 			var favicon_data = $("#inputFavicon").prop("files")[0];
 
-			// Konverter til base64
-			var favicon_base64;
-
-			// TJek om favicon er blevet uploadet
-			if (favicon_data) {
-				
-				// GetBase64
-				getBase64(favicon_data, result => {
-					favicon_base64 = result;
-				});
-
-				// Promise toBase64
-				// toBase64(favicon_data).then((result) => {favicon_base64 = result});
-			}
+			// FormData
+			let formData = new FormData();
+			formData.append("name", name);
+			formData.append("skabelon_id", skabelon_id);
+			formData.append("contact_mail", contact_mail);
+			formData.append("contact_phone", contact_phone);
+			formData.append("contact_name", contact_name);
+			formData.append("contact_address", contact_address);
+			formData.append("text", text);
+			formData.append("sub_domain", sub_domain);
+			formData.append("favicon", favicon_data);
+			formData.append("site_id", <%= siteInfo.id %>);
 
 			// Timeout -- vent på base64 conversion
 			setTimeout(() => {
@@ -111,18 +109,9 @@
 				$.ajax({
 					url: "/updateSite",
 					method: "POST",
-					data: {
-						name: name,
-						skabelon_id: skabelon_id,
-						contact_mail: contact_mail,
-						contact_phone: contact_phone,
-						contact_name: contact_name,
-						contact_address: contact_address,
-						text: text,
-						sub_domain: sub_domain,
-						site_id: site_id,
-						favicon: favicon_base64
-					},
+					data: formData,
+					processData: false,
+    				contentType: false,
 				}).done((succ) => {
 
 					// Gør dette når funktionen fuldender med success!
@@ -141,7 +130,7 @@
 						// Vent 2 sekunder og derefter redir
 						setTimeout( () => {
 
-							window.location.href = "/mySites";
+							window.location.href = "#editForm";
 
 						}, 2000);
 
