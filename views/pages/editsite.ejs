@@ -20,48 +20,49 @@
 			</div>
 
 			<div class="form-group mt-3">
-			  	<label for="inputName">Navn</label>
+			  	<label for="inputName"><b>Navn</b></label>
 			  	<input required value="<%= siteInfo.name %>" type="text" class="form-control" id="inputName" name="inputName" aria-describedby="Navn" placeholder="Indtast navn">
 			</div>
 
 			<div class="form-group mt-3">
-				<label for="inputSkabelon">Skabelon</label>
+				<label for="inputSkabelon"><b>Skabelon</b></label>
 				<input required value="<%= siteInfo.skabelon_id %>" type="text" class="form-control" id="inputSkabelon" name="inputSkabelon" aria-describedby="Skabelon" placeholder="Indtast skabelon ID">
 		 	</div>
 
 			 <div class="form-group mt-3">
-				<label for="inputContactMail">Kontakt Mail</label>
+				<label for="inputContactMail"><b>Kontakt Mail</b></label>
 				<input required value="<%= siteInfo.contact_mail %>" type="email" class="form-control" id="inputContactMail" name="inputContactMail" aria-describedby="Mail" placeholder="Indtast Mail">
 		 	</div>
 
 			<div class="form-group mt-3">
-				<label for="inputContactPhone">Kontakt Telefon</label>
+				<label for="inputContactPhone"><b>Kontakt Telefon</b></label>
 				<input required value="<%= siteInfo.contact_phone %>" type="text" class="form-control" id="inputContactPhone" name="inputContactPhone" aria-describedby="Telefon" placeholder="Indtast Telefon">
 		 	</div>
 
 			<div class="form-group mt-3">
-				<label for="inputContactAddress">Kontakt Addresse</label>
+				<label for="inputContactAddress"><b>Kontakt Addresse</b></label>
 				<input required value="<%= siteInfo.contact_address %>" type="text" class="form-control" id="inputContactAddress" name="inputContactAddress" aria-describedby="Adresse" placeholder="Indtast Adresse">
 		 	</div>
 
 			<div class="form-group mt-3">
-				<label for="inputContactName">Kontakt Navn</label>
+				<label for="inputContactName"><b>Kontakt Navn</b></label>
 				<input required value="<%= siteInfo.contact_name %>" type="text" class="form-control" id="inputContactName" name="inputContactName" aria-describedby="Kontakt Navn" placeholder="Indtast kontakt navn">
 		 	</div>
 
 			<div class="form-group mt-3">
-				<label for="inputSubDomain">Sub-domain</label>
+				<label for="inputSubDomain"><b>Sub-domain</b></label>
 				<input required value="<%= siteInfo.sub_domain %>" type="text" class="form-control" id="inputSubDomain" name="inputSubDomain" aria-describedby="Sub Domæne" placeholder="Indtast Sub-Domæne">
 		 	</div>
 			
 			<div class="form-group mt-3">
-				<label>Text</label>
+				<label><b>Text</b></label>
 				<textarea required id="inputText" class="w-100 p-2 form-control rounded" style="resize: vertical; min-height: 50px;"><%= siteInfo.text %></textarea>
 			</div>
 
 			<div class="form-group mt-3">
-				<label for="inputFavicon">Upload Logo</label>
-				<input type="file" class="form-control" id="inputFavicon" name="inputFavicon" aria-describedby="Logo / Favicon" placeholder="Upload logo">
+				<label for="inputFavicon"><b>Upload Logo</b></label> <br>
+				<img src="<%= siteInfo.favicon %>" alt="Aktuelt logo" width="60" height="50" class="rounded">
+				<input type="file" accept="image/png,image/gif,image/jpeg" class="form-control mt-2" id="inputFavicon" name="inputFavicon" aria-describedby="Logo / Favicon" placeholder="Upload logo">
 		 	</div>
 		  
 			<button type="submit" class="btn btn-primary mt-2" onclick="submitSave()">Gem</button>
@@ -126,7 +127,7 @@
 
 					// Gør dette når funktionen fuldender med success!
 					// console.log("Success", succ);
-					console.log(favicon_base64);
+					// console.log(favicon_base64);
 
 					// Tjek om success er true
 					if (succ.success) {
@@ -136,6 +137,13 @@
 						$("#loginAlert").removeClass("alert-danger");
 						$("#loginAlert").addClass("alert-success");
 						$("#loginAlert").html(succ.status);
+
+						// Vent 2 sekunder og derefter redir
+						setTimeout( () => {
+
+							window.location.href = "/mySites";
+
+						}, 2000);
 
 					}else {
 
