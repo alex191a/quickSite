@@ -176,6 +176,14 @@ app.get("/rediger-site/:site_domain/", (req,res) => {
 
 })
 
+// Oprettelse af bruger
+app.get("/opret-bruger", (req,res) => {
+
+	// Render
+	res.render("./pages/opretBruger", {loginState: req.session});
+
+})
+
 // Post login
 app.post("/auth", (req,res) => {
 

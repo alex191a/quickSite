@@ -12,7 +12,7 @@
 	
 	<div class="container mt-3 w-75" style="max-width: 650px;">
 
-		<h2>Login</h2>
+		<h2>Oprettelse af bruger</h2>
 
 		<div>
 			<div id="loginAlert" class="alert alert-danger" style="display: none;" role="alert">
@@ -26,13 +26,13 @@
 			  	<label for="inputPassword">Adgangskode</label>
 			  	<input type="password" class="form-control" id="inputPassword" name="password" placeholder="Indtast adgangskode">
 			</div>
-			<button type="submit" class="btn btn-primary mt-2" onclick="submitLogin($('#inputUsername').val(),$('#inputPassword').val())">Login</button>
+			<button type="submit" class="btn btn-primary mt-2" onclick="submitLogin($('#inputUsername').val(),$('#inputPassword').val())">Opret bruger</button>
 
 		</div>
 
-		<a href="/opret-bruger">
+		<a href="/login">
 			<button class="btn btn-secondary mt-5">
-				Opret bruger
+				Login
 			</button>
 		</a>
 
@@ -50,7 +50,7 @@
 
 			// Ajax call
 			$.ajax({
-				url: "/auth",
+				url: "/opret-bruger",
 				method: "POST",
 				data: {
 					username: username,
@@ -71,7 +71,7 @@
 					$("#loginAlert").html(succ.status);
 
 					// Redirect
-					window.location.href = "/mySites";
+					window.location.href = "/login";
 
 				}else {
 
