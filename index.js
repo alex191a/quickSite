@@ -431,6 +431,23 @@ app.post("/createSite", (req,res) => {
 			var site_id = req.body.site_id;
 			var favicon = req.body.favicon;
 
+			// Tjek om dette skableonID eksisterer
+			var skabelonCheck = conn.query(`SELECT * FROM Skabeloner WHERE id = "${skabelon_id}"`);
+
+			if (skabelonCheck.length > 0) {
+				
+				// Denne skabelon eksisterer!
+
+			}else {
+
+				// Find den første skabelon
+				var firstSkabelon = conn.query(`SELECT * FROM Skabeloner ORDER BY id ASC LIMIT 1`);
+
+				// Opdater skabelon id
+				skabelon_id = firstSkabelon[0].id;
+
+			}
+
 			// Url encode sub_domain
 			sub_domain = encodeURI(sub_domain.replaceAll(" ", "-").toLowerCase());
 
@@ -440,7 +457,7 @@ app.post("/createSite", (req,res) => {
 			echo.data = pbody;
 
 			// Tjek om der er blevet uploadet en fil
-			if (!req.files || Object.keys(req.files).length === 0) {
+			if (!req.files) {
 				
 				// Opdater echo
 				echo.success = false;
@@ -460,35 +477,36 @@ app.post("/createSite", (req,res) => {
   			uploadPath = __dirname + '/public/' + sub_domain + '/' + favicon_file.name;
 
 			// Tjek om mappen til sub-domænet eksisterer
-			fs.access(`${__dirname}/public/${sub_domain}/`, function(error) {
+			fs.access(`./public/${sub_domain}/`, function(error) {
 				if (error) {
 				
 					// Opret mappen
-					fs.mkdirSync(`${__dirname}/public/${sub_domain}/`)
+					fs.mkdirSync(`./public/${sub_domain}/`)
 
 				}
 
-			});
+				// Flyt filen
+				// Use the mv() method to place the file somewhere on your server
+				favicon_file.mv(uploadPath, function(err) {
+					if (err) {
+						
+						console.log(err);
 
-			// Flyt filen
-			// Use the mv() method to place the file somewhere on your server
-			favicon_file.mv(uploadPath, function(err) {
-				if (err) {
-					
-					console.log(err);
+						// Opdater echo
+						echo.success = false;
+						echo.status = err;
+						echo.err = err;
+
+						// return res.send(echo);
+
+					}
 
 					// Opdater echo
-					echo.success = false;
-					echo.status = err;
-					echo.err = err;
+					echo.success = true;
+					echo.status = "Favicon opdateret";
 
-					// return res.send(echo);
+				});
 
-				}
-
-				// Opdater echo
-				echo.success = true;
-				echo.status = "Favicon opdateret";
 
 			});
 
@@ -640,6 +658,23 @@ app.post("/updateSite", (req,res) => {
 			var text = req.body.text;
 			var sub_domain = req.body.sub_domain;
 			var site_id = req.body.site_id;
+
+			// Tjek om dette skableonID eksisterer
+			var skabelonCheck = conn.query(`SELECT * FROM Skabeloner WHERE id = "${skabelon_id}"`);
+
+			if (skabelonCheck.length > 0) {
+				
+				// Denne skabelon eksisterer!
+
+			}else {
+
+				// Find den første skabelon
+				var firstSkabelon = conn.query(`SELECT * FROM Skabeloner ORDER BY id ASC LIMIT 1`);
+
+				// Opdater skabelon id
+				skabelon_id = firstSkabelon[0].id;
+
+			}
 			
 			// Upload af file
 			var uploadPath;
@@ -688,7 +723,7 @@ app.post("/updateSite", (req,res) => {
 				console.log("Favicon!", req.body);
 
 				// Tjek om der er blevet uploadet en fil
-				if (req.files || !(Object.keys(req.files).length === 0)) {
+				if (req.files) {
 
 					// Definer filen
 					favicon_file = req.files.favicon;
