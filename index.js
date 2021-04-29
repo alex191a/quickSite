@@ -352,8 +352,7 @@ app.get("/removeUser",(req,res)=> {
 
 })
 app.get("/Logout",(req,res)=> {
-	req.session.destroy
-	res.send("session destroyed")
+	req.session.destroy()
 	res.redirect("/")
 })
 // Get sites
