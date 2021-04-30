@@ -12,20 +12,17 @@
 				<li class="nav-item">
 					<a class="nav-link" aria-current="page" href="/">Hjem</a>
 				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="/opret-site">Opret site!</a>
+				</li>
 				<%if (loginState.loggedIn) {%>
 
-					<li class="nav-item">
-						<a class="nav-link" href="/opret-site">Opret site!</a>
-					</li>
 					<li class="nav-item">
 						<a class="nav-link" href="/mySites"><%= loginState.username %></a>
 					</li>
 					
 				<%}else {%>
 
-					<li class="nav-item">
-						<a class="nav-link" href="/login">Opret site!</a>
-					</li>
 					<li class="nav-item">
 						<a class="nav-link" href="/login">Login</a>
 					</li>
