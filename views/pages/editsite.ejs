@@ -15,9 +15,6 @@
 		<h2>Rediger site</h2>
 
 		<div class="p-4 pt-1">
-			<div id="loginAlert" class="alert alert-danger" style="display: none;" role="alert">
-				...
-			</div>
 
 			<form method="POST" enctype="multipart/form-data" id="editForm">
 
@@ -39,7 +36,7 @@
 								</label>
 							</div>
 							<div class="m-3">
-								<img src="<%= skab_id.img_placement %>" onclick="$('#skabRadio<%= skab_id.id %>').click()" class="rounded" width="400" height="200" style="object-fit: cover; object-position: top;">
+								<img src="<%= skab_id.img_placement %>" onclick="$('#skabRadio<%= skab_id.id %>').click()" class="rounded" style="object-fit: cover; object-position: top; max-width: 100%; width: 400px; height: 200px;">
 							</div>
 						</div>
   
@@ -82,8 +79,14 @@
 					<img id="imagePreview" src="<%= siteInfo.favicon %>" alt="Aktuelt logo" width="60" height="50" class="rounded">
 					<input type="file" accept="image/png,image/gif,image/jpeg" class="form-control mt-2" id="inputFavicon" name="favicon" aria-describedby="Logo / Favicon" placeholder="Upload logo" name="favicon">
 				</div>
+
+				<hr>
+
+				<div id="loginAlert" class="alert alert-danger mt-3" style="display: none;" role="alert">
+					...
+				</div>
 			  
-				<button type="submit" class="btn btn-primary mt-2">Gem</button>
+				<button type="submit" class="btn btn-primary mt-2 w-50 position-relative" style="left: 50%; transform: translateX(-50%);">Gem</button>
 
 			</form>
 
