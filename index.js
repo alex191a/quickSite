@@ -106,11 +106,14 @@ app.get("/login", (req,res) => {
 // Opret site
 app.get("/opret-site", (req,res) => {
 
+	// Get alle skabeloner
+	var skabelonCheck = conn.query("SELECT * FROM Skabeloner");
+
 	// Tjek om brugeren er logget ind
 	if (req.session.loggedIn) {
 		
 		// Render
-		res.render("./pages/createsite", {loginState: req.session});
+		res.render("./pages/createsite", {loginState: req.session, skabeloner: skabelonCheck});
 	
 	}else {
 
@@ -161,11 +164,14 @@ app.get("/rediger-site/:site_domain/", (req,res) => {
 		// Tjek om dette domæne tilhører denne bruger
 		var domainCheck = conn.query(`SELECT * FROM Sites WHERE user_id = "${loginUserID}" AND sub_domain = "${site_domain}"`);
 
+		// Få alle skabelon_id'er
+		var skabelonCheck = conn.query("SELECT * FROM Skabeloner");
+
 		// Tjek resultatet
 		if (domainCheck.length > 0) {
 
 			// Render
-			res.render("./pages/editsite", {loginState: req.session, siteInfo: domainCheck[0]});
+			res.render("./pages/editsite", {loginState: req.session, siteInfo: domainCheck[0], skabeloner: skabelonCheck});
 
 		}else {
 
