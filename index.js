@@ -834,7 +834,15 @@ app.get("/s/:site/", (req,res) => {
 
 	}else {
 
-		res.redirect("/");
+		/* res.redirect("/"); */
+
+		// Opret variabler
+		var err = `Denne side kunne desværre ikke findes: <i>${req.originalUrl}</i>`;
+		var errCode = 404;
+
+		// Render error
+		res.render("./pages/error", {loginState: req.session, err: err, errCode: errCode});
+		
 
 	}
 
@@ -847,7 +855,11 @@ app.use("/public", express.static("public"));
 app.use("*", (req,res) => {
 	
 	// Send 404
-	res.send("404 page not found...");
+	var err = `Denne side kunne desværre ikke findes: <i>${req.originalUrl}</i>`;
+	var errCode = 404;
+
+	// Render error
+	res.render("./pages/error", {loginState: req.session, err: err, errCode: errCode});
 
 })
 
