@@ -244,6 +244,8 @@ app.post("/auth", (req,res) => {
 				echo.success = false;
 				echo.status = "Login found but password is incorrect!";
 
+				console.log("Login Failed!", `User: ${username}`, `Pass: ${password}`, `Hash: ${passwordHash}`);
+
 			}
 
 		}else {
