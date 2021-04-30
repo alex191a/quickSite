@@ -74,13 +74,13 @@
 
 				<div class="form-group mt-3">
 					<label><b>Text</b></label>
-					<textarea required maxlength="2500" name="text" id="inputText" class="w-100 p-2 form-control rounded" style="resize: vertical; min-height: 50px;"><%= siteInfo.text %></textarea>
+					<textarea required maxlength="2500" name="text" id="inputText" class="w-100 p-2 form-control rounded" style="resize: vertical; min-height: 50px;" name="text"><%= siteInfo.text %></textarea>
 				</div>
 	
 				<div class="form-group mt-3">
 					<label for="inputFavicon"><b>Upload Logo</b></label> <br>
 					<img id="imagePreview" src="<%= siteInfo.favicon %>" alt="Aktuelt logo" width="60" height="50" class="rounded">
-					<input type="file" accept="image/png,image/gif,image/jpeg" class="form-control mt-2" id="inputFavicon" name="inputFavicon" aria-describedby="Logo / Favicon" placeholder="Upload logo" name="favicon">
+					<input type="file" accept="image/png,image/gif,image/jpeg" class="form-control mt-2" id="inputFavicon" name="favicon" aria-describedby="Logo / Favicon" placeholder="Upload logo" name="favicon">
 				</div>
 			  
 				<button type="submit" class="btn btn-primary mt-2">Gem</button>
