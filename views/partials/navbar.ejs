@@ -29,13 +29,16 @@
 
 				<%}%>
 			</ul>
+			<%if (loginState.loggedIn) {%>
+				<ul class="navbar-nav ms-auto">
+
+					<li class="nav-item">
+						<a href="/logout" class="btn btn-danger">Log ud!</a>
+					</li>
+				
+				</ul>
+			<% } %>
 		</div>
-
-		<%if (loginState.loggedIn) {%>
-
-			<a href="/logout" class="btn btn-danger">Log ud!</a>
-
-		<% } %>
 
 	</div>
 </nav>
