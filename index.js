@@ -485,14 +485,14 @@ app.post("/createSite", (req,res) => {
 
 			// Definer filen
 			favicon_file = req.files.favicon;
-  			uploadPath = __dirname + '/public/' + sub_domain + '/' + favicon_file.name;
+  			uploadPath = __dirname + '/public/Sites/' + sub_domain + '/' + favicon_file.name;
 
 			// Tjek om mappen til sub-domænet eksisterer
-			fs.access(`./public/${sub_domain}/`, function(error) {
+			fs.access(`./public/Sites/${sub_domain}/`, function(error) {
 				if (error) {
 				
 					// Opret mappen
-					fs.mkdirSync(`./public/${sub_domain}/`)
+					fs.mkdirSync(`./public/Sites/${sub_domain}/`)
 
 				}
 
@@ -534,7 +534,7 @@ app.post("/createSite", (req,res) => {
 			}else {
 
 				// Opret ny site i mysql
-				var result = conn.query(`INSERT INTO Sites (name, contact_mail, contact_phone, contact_name, contact_address, text, skabelon_id, user_id, sub_domain, favicon) VALUES ("${name}", "${contact_mail}", "${contact_phone}", "${contact_name}", "${contact_address}", "${text}", "${skabelon_id}", "${req.session.userID}", "${sub_domain}", "/public/${sub_domain}/${favicon_file.name}")`);
+				var result = conn.query(`INSERT INTO Sites (name, contact_mail, contact_phone, contact_name, contact_address, text, skabelon_id, user_id, sub_domain, favicon) VALUES ("${name}", "${contact_mail}", "${contact_phone}", "${contact_name}", "${contact_address}", "${text}", "${skabelon_id}", "${req.session.userID}", "${sub_domain}", "/public/Sites/${sub_domain}/${favicon_file.name}")`);
 				
 				console.log("Results", result);
 
@@ -738,14 +738,14 @@ app.post("/updateSite", (req,res) => {
 
 					// Definer filen
 					favicon_file = req.files.favicon;
-					uploadPath = __dirname + '/public/' + sub_domain + '/' + favicon_file.name;
+					uploadPath = __dirname + '/public/Sites/' + sub_domain + '/' + favicon_file.name;
 
 					// Tjek om mappen til sub-domænet eksisterer
-					fs.access(`${__dirname}/public/${sub_domain}/`, function(error) {
+					fs.access(`${__dirname}/public/Sites/${sub_domain}/`, function(error) {
 						if (error) {
 						
 							// Opret mappen
-							fs.mkdirSync(`${__dirname}/public/${sub_domain}/`)
+							fs.mkdirSync(`${__dirname}/public/Sites/${sub_domain}/`)
 
 						}
 
@@ -768,7 +768,7 @@ app.post("/updateSite", (req,res) => {
 						}
 
 						// Mysql
-						var updateFavicon = conn.query(`UPDATE Sites SET favicon = "/public/${sub_domain}/${favicon_file.name}" WHERE user_id = "${loginUserID}" AND id = "${site_id}"`);
+						var updateFavicon = conn.query(`UPDATE Sites SET favicon = "/public/Sites/${sub_domain}/${favicon_file.name}" WHERE user_id = "${loginUserID}" AND id = "${site_id}"`);
 
 						// Opdater echo
 						echo.success = true;

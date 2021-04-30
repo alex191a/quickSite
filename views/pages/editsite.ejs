@@ -30,13 +30,18 @@
 					<label for="inputSkabelon"><b>Skabelon</b></label>
 				  
 				  	<% skabeloner.forEach((skab_id)=> { %>
-  
-						<div class="form-check">
-							<input <% if (siteInfo.skabelon_id === skab_id.id) { %> checked <% } %> required value="<%= skab_id.id %>" class="form-check-input" type="radio" name="skabelon_id" id="flexRadioDefault<%= skab_id.id %>">
-						  	<label class="form-check-label" for="flexRadioDefault<%= skab_id.id %>">
-								<%= skab_id.name %>
-						  	</label>
-					  	</div>
+						  
+						<div class="form-check bg-light rounded mt-4 pl-3 pt-3 pb-3 d-flex align-items-center">
+							<div class="d-inline-flex w-25">
+								<input <% if (siteInfo.skabelon_id === skab_id.id) { %> checked <% } %> required value="<%= skab_id.id %>" class="form-check-input m-1" type="radio" name="skabelon_id" id="skabRadio<%= skab_id.id %>">
+								<label class="form-check-label" for="skabRadio<%= skab_id.id %>">
+									<%= skab_id.name %>
+								</label>
+							</div>
+							<div class="m-3">
+								<img src="<%= skab_id.img_placement %>" onclick="$('#skabRadio<%= skab_id.id %>').click()" class="rounded" width="400" height="200" style="object-fit: cover; object-position: top;">
+							</div>
+						</div>
   
 				  	<% }) %>
   
@@ -74,9 +79,9 @@
 	
 				<div class="form-group mt-3">
 					<label for="inputFavicon"><b>Upload Logo</b></label> <br>
-					<img src="<%= siteInfo.favicon %>" alt="Aktuelt logo" width="60" height="50" class="rounded">
+					<img id="imagePreview" src="<%= siteInfo.favicon %>" alt="Aktuelt logo" width="60" height="50" class="rounded">
 					<input type="file" accept="image/png,image/gif,image/jpeg" class="form-control mt-2" id="inputFavicon" name="inputFavicon" aria-describedby="Logo / Favicon" placeholder="Upload logo" name="favicon">
-				 </div>
+				</div>
 			  
 				<button type="submit" class="btn btn-primary mt-2">Gem</button>
 
@@ -97,6 +102,19 @@
 			submitSave();
 
 		})
+
+		// Vis image preview når logo uploades
+		document.getElementById("inputFavicon").onchange = function () {
+			var reader = new FileReader();
+
+			reader.onload = function (e) {
+				// get loaded data and render thumbnail.
+				document.getElementById("imagePreview").src = e.target.result;
+			};
+
+			// read the image file as a data URL.
+			reader.readAsDataURL(this.files[0]);
+		};
 
 		function submitSave() {
 
