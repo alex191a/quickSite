@@ -506,8 +506,20 @@ app.post("/createSite", (req,res) => {
 			fs.access(`./public/Sites/${sub_domainNOTESCAPED}/`, function(error) {
 				if (error) {
 				
-					// Opret mappen
-					fs.mkdirSync(`./public/Sites/${sub_domainNOTESCAPED}/`)
+					try {
+
+						// Opret mappen
+						fs.mkdirSync(`./public/Sites/${sub_domainNOTESCAPED}/`)
+
+					} catch (err) {
+
+						// Opdater echo
+						echo.success = false;
+						echo.err = err;
+						echo.status = err;
+						echo.errCode = 500;
+
+					}
 
 				}
 
@@ -623,6 +635,23 @@ app.delete("/deleteSite", (req,res) => {
 				// Opdater echo
 				echo.success = true;
 				echo.status = `Site with id: ${site_id} has been deleted!`;
+
+				// Slet mappen med dette sub-domain
+				try {
+
+					fs.rmSync(`${__dirname}/public/Sites/${userCheck[0].sub_domain}/`,{
+						recursive: true
+					});
+
+				} catch (err) {
+
+					// Opdater echo
+					echo.success = false;
+					echo.err = err;
+					echo.status = err;
+					echo.errCode = 500;
+
+				}
 			
 				// console.log
 				// console.log("Delete", deleteMysql);
@@ -742,7 +771,59 @@ app.post("/updateSite", (req,res) => {
 						echo.err = "Sub-domain already in use.";
 						echo.errCode = 100;
 
+						console.log("Domain already in use!");
+
 						return res.send(echo);
+
+					}
+
+				}
+
+				// Tjek om sub-domænet er blevet ændreet
+				if (sub_domainNOTESCAPED !== userCheck[0].sub_domain) {
+
+					// Tjek om mappen eksisterer
+					if (fs.existsSync(`${__dirname}/public/Sites/${userCheck[0].sub_domain}/`)) {
+
+						try {
+
+							// Rename mappen med data
+							fs.renameSync(`${__dirname}/public/Sites/${userCheck[0].sub_domain}/`, `${__dirname}/public/Sites/${sub_domainNOTESCAPED}/`);
+	
+							console.log("Rename", `${__dirname}/public/Sites/${userCheck[0].sub_domain}/`);
+		
+							// console.log("Rename!");
+		
+						} catch (err) {
+		
+							// Opdater echo
+							echo.success = false;
+							echo.err = err;
+							echo.status = "Error renaming folder...";
+							echo.errCode = 500;
+		
+							return res.send(echo);
+		
+						}
+							
+					}else {
+
+						try {
+							
+							// Opret mappen
+							fs.mkdirSync(`${__dirname}/public/Sites/${sub_domainNOTESCAPED}/`);
+						
+						}catch (err) {
+
+							// Opdater echo
+							echo.success = false;
+							echo.err = err;
+							echo.status = "Error making new folder";
+							echo.errCode = 500;
+
+							return res.send(echo);
+
+						}
 
 					}
 
@@ -764,17 +845,6 @@ app.post("/updateSite", (req,res) => {
 					// Definer filen
 					favicon_file = req.files.favicon;
 					uploadPath = __dirname + '/public/Sites/' + sub_domainNOTESCAPED + '/' + favicon_file.name;
-
-					// Tjek om mappen til sub-domænet eksisterer
-					fs.access(`${__dirname}/public/Sites/${sub_domainNOTESCAPED}/`, function(error) {
-						if (error) {
-						
-							// Opret mappen
-							fs.mkdirSync(`${__dirname}/public/Sites/${sub_domainNOTESCAPED}/`)
-
-						}
-
-					});
 
 					// Flyt filen
 					// Use the mv() method to place the file somewhere on your server
