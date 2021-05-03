@@ -60,6 +60,7 @@ var conn = new mysql({
 
 // get the client
 const mysql2 = require('mysql2');
+const { Console } = require("console");
 // create the connection to database
 const conn2 = mysql2.createConnection({
 	host: 'famas.ml',
@@ -303,7 +304,7 @@ app.post("/signup", (req,res) => {
 			// Opret bruger i DB
 			var result = conn.query(`INSERT INTO Users (username, password) VALUES (${username}, "${passwordHash}")`);
 
-			console.log("Results", result);
+			// console.log("Results", result);
 
 			// Opdater echo
 			echo.success = true;
@@ -563,7 +564,7 @@ app.post("/createSite", (req,res) => {
 				// Opret ny site i mysql
 				var result = conn.query(`INSERT INTO Sites (name, contact_mail, contact_phone, contact_name, contact_address, text, skabelon_id, user_id, sub_domain, favicon) VALUES (${name}, ${contact_mail}, ${contact_phone}, ${contact_name}, ${contact_address}, ${text}, ${skabelon_id}, ${req.session.userID}, ${sub_domain}, "/public/Sites/${req.body.sub_domain.replaceAll(" ", "-").toLowerCase()}/${favicon_file.name}")`);
 				
-				console.log("Results", result);
+				 // console.log("Results", result);
 
 				// Opdater echo
 				echo.success = true;
@@ -782,17 +783,42 @@ app.post("/updateSite", (req,res) => {
 				// Tjek om sub-domænet er blevet ændreet
 				if (sub_domainNOTESCAPED !== userCheck[0].sub_domain) {
 
-					// Tjek om mappen eksisterer
-					if (fs.existsSync(`${__dirname}/public/Sites/${userCheck[0].sub_domain}/`)) {
+					// Opret variabler
+					var oldSubPath = `${__dirname}/public/Sites/${userCheck[0].sub_domain}/`;
+					var shortOldSubPath = `/public/Sites/${userCheck[0].sub_domain}/`;
+					
+					var newSubPath = `${__dirname}/public/Sites/${sub_domainNOTESCAPED}/`;
+					var shortNewSubPath = `/public/Sites/${sub_domainNOTESCAPED}/`;
+					
+					var oldImgPath = userCheck[0].favicon;
+					var newImgPath = shortNewSubPath + oldImgPath.substring(shortOldSubPath.length, oldImgPath.length);
+
+					// console.log("FaviconFLyttet", newImgPath);
+
+					// Tjek om gammel mappe eksisterer
+					if (fs.existsSync(oldSubPath)) {
+
+						// Tjek om den nye path allerede findes
+						if (fs.existsSync(newSubPath)) {
+
+							// Den nye mappe eksisterer allerede
+							// Slet den
+							fs.rmSync(newSubPath,{
+								recursive: true
+							})
+
+						}
 
 						try {
 
 							// Rename mappen med data
-							fs.renameSync(`${__dirname}/public/Sites/${userCheck[0].sub_domain}/`, `${__dirname}/public/Sites/${sub_domainNOTESCAPED}/`);
+							fs.renameSync(oldSubPath, newSubPath);
 	
-							console.log("Rename", `${__dirname}/public/Sites/${userCheck[0].sub_domain}/`);
-		
-							// console.log("Rename!");
+							// Console.log
+							// console.log("Rename", oldSubPath, newSubPath);
+
+							// Opdater sql med placering af dette billede
+							var subUpdate = conn.query(`UPDATE Sites SET favicon = ${mysql2.escape(newImgPath)}`);
 		
 						} catch (err) {
 		
@@ -808,10 +834,17 @@ app.post("/updateSite", (req,res) => {
 							
 					}else {
 
+						console.log("Original mappe er blevet slettet eller kan ikke tilgås", oldSubPath)
+
 						try {
 							
 							// Opret mappen
-							fs.mkdirSync(`${__dirname}/public/Sites/${sub_domainNOTESCAPED}/`);
+							fs.mkdirSync(newSubPath);
+
+							// Console.log
+							// console.log(`Opretter ny mappe ${newSubPath}`);
+
+							// Forsøg at flytte filen med billedet
 						
 						}catch (err) {
 
