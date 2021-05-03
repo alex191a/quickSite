@@ -106,11 +106,14 @@ app.get("/login", (req,res) => {
 // Opret site
 app.get("/opret-site", (req,res) => {
 
+	// Get alle skabeloner
+	var skabelonCheck = conn.query("SELECT * FROM Skabeloner");
+
 	// Tjek om brugeren er logget ind
 	if (req.session.loggedIn) {
 		
 		// Render
-		res.render("./pages/createsite", {loginState: req.session});
+		res.render("./pages/createsite", {loginState: req.session, skabeloner: skabelonCheck});
 	
 	}else {
 
@@ -127,8 +130,8 @@ app.get("/mySites", (req,res) => {
 	if (req.session.loggedIn) {
 
 		// Opret login vars
-		var loginUser = req.session.username;
-		var loginUserID = req.session.userID;
+		var loginUser = mysql2.escape(req.session.username);
+		var loginUserID = mysql2.escape(req.session.userID);
 
 		// Get alle sites
 		var siteInfo = conn.query(`SELECT * FROM Sites WHERE user_id = ${loginUserID}`);
@@ -149,23 +152,26 @@ app.get("/mySites", (req,res) => {
 app.get("/rediger-site/:site_domain/", (req,res) => {
 
 	// Opret var til denne
-	var site_domain = req.params.site_domain;
+	var site_domain = mysql2.escape(req.params.site_domain);
 
 	// Tjek om brugeren er logget ind.
 	if (req.session.loggedIn) {
 		
 		// Opret vars til logget ind bruger
-		var loginUser = req.session.username;
-		var loginUserID = req.session.userID;
+		var loginUser = mysql2.escape(req.session.username);
+		var loginUserID = mysql2.escape(req.session.userID);
 	
 		// Tjek om dette domæne tilhører denne bruger
-		var domainCheck = conn.query(`SELECT * FROM Sites WHERE user_id = "${loginUserID}" AND sub_domain = "${site_domain}"`);
+		var domainCheck = conn.query(`SELECT * FROM Sites WHERE user_id = ${loginUserID} AND sub_domain = ${site_domain}`);
+
+		// Få alle skabelon_id'er
+		var skabelonCheck = conn.query("SELECT * FROM Skabeloner");
 
 		// Tjek resultatet
 		if (domainCheck.length > 0) {
 
 			// Render
-			res.render("./pages/editsite", {loginState: req.session, siteInfo: domainCheck[0]});
+			res.render("./pages/editsite", {loginState: req.session, siteInfo: domainCheck[0], skabeloner: skabelonCheck});
 
 		}else {
 
@@ -207,11 +213,11 @@ app.post("/auth", (req,res) => {
 	if ("username" in req.body && "password" in req.body){
 
 		// Post login params
-		var username = req.body.username;
-		var password = req.body.password;
+		var username = mysql2.escape(req.body.username);
+		var password = mysql2.escape(req.body.password);
 
 		// Tjek om dette brugernavn findes
-		var result = conn.query(`SELECT * FROM Users WHERE username = "${username}" LIMIT 1`);
+		var result = conn.query(`SELECT * FROM Users WHERE username = ${username} LIMIT 1`);
 
 		// Tjek om denne bruger findes i result array
 		if (result.length > 0) {
@@ -237,6 +243,8 @@ app.post("/auth", (req,res) => {
 				// Opdater echo
 				echo.success = false;
 				echo.status = "Login found but password is incorrect!";
+
+				console.log("Login Failed!", `User: ${username}`, `Pass: ${password}`, `Hash: ${passwordHash}`);
 
 			}
 
@@ -277,8 +285,8 @@ app.post("/signup", (req,res) => {
 	if ("username" in req.body && "password" in req.body){
 
 		// Opret variabler
-		var username = req.body.username;
-		var password = req.body.password;
+		var username = mysql2.escape(req.body.username);
+		var password = mysql2.escape(req.body.password);
 
 		// Log
 		console.log(`New user request: username: ${username} - pass: ${password}`)
@@ -288,12 +296,12 @@ app.post("/signup", (req,res) => {
 		const passwordHash = bcrypt.hashSync(password, salt);
 
 		// Tjek om brugernavnet allerede findes i DB.
-		var userCheck = conn.query(`SELECT * FROM Users WHERE username = "${username}"`);
+		var userCheck = conn.query(`SELECT * FROM Users WHERE username = ${username}`);
 
 		if (!(userCheck.length > 0)) {
 
 			// Opret bruger i DB
-			var result = conn.query(`INSERT INTO Users (username, password) VALUES ("${username}", "${passwordHash}")`);
+			var result = conn.query(`INSERT INTO Users (username, password) VALUES (${username}, "${passwordHash}")`);
 
 			console.log("Results", result);
 
@@ -323,7 +331,7 @@ app.post("/signup", (req,res) => {
 	res.send(echo);
 
 })
-app.get("/removeUser",(req,res)=> {
+app.get("/removeUser", (req,res) => {
 	// 
 	let echo ={
 		err: "",
@@ -333,21 +341,31 @@ app.get("/removeUser",(req,res)=> {
 		data: {}
 	}
 	if(req.session.loggedIn){
-		let loginUser =req.session.username;
-		let loginUserID = req.session.userID
 
-		let result = conn.query(`DELETE FROM Sites WHERE user_id = "${loginUserID}"`);
-		let result2 = conn.query(`DELETE FROM Users WHERE id = "${loginUserID}"`);
+		// Opret variabler
+		let loginUser = mysql2.escape(req.session.username);
+		let loginUserID = mysql2.escape(req.session.userID);
+
+		// Mysql
+		let result = conn.query(`DELETE FROM Sites WHERE user_id = ${loginUserID}`);
+		let result2 = conn.query(`DELETE FROM Users WHERE id = ${loginUserID}`);
+
+		// Opdater echo
 		echo.data ={result, result2}
 		echo.success= true;
 		echo.status = "Delete user and users sites"
 
 	}
 	else{
+
+		// Opdater echo
 		echo.success= false;
 		echo.err= "user not logged in";
 		echo.errCode = 403;
+
 	}
+
+	// Send echo
 	res.send(echo);
 
 })
@@ -377,11 +395,11 @@ app.get("/getSites", (req,res) => {
 		
 		// Bruger er logget ind
 		// Opret vars
-		var loginUser = req.session.username;
-		var loginUserID = req.session.userID;
+		var loginUser = mysql2.escape(req.session.username);
+		var loginUserID = mysql2.escape(req.session.userID);
 
 		// MYSQL Query
-		var result = conn.query(`SELECT * FROM Sites WHERE user_id = "${loginUserID}"`);
+		var result = conn.query(`SELECT * FROM Sites WHERE user_id = ${loginUserID}`);
 
 		// Opdater echo
 		echo.data = result;
@@ -424,20 +442,20 @@ app.post("/createSite", (req,res) => {
 
 		if (pbody.name && pbody.contact_mail && pbody.contact_phone && pbody.contact_name && pbody.contact_address && pbody.text && pbody.skabelon_id && pbody.sub_domain) {
 
-			// Opret variabler
-			var name = req.body.name;
-			var skabelon_id = req.body.skabelon_id;
-			var contact_mail = req.body.contact_mail;
-			var contact_phone = req.body.contact_phone;
-			var contact_name = req.body.contact_name;
-			var contact_address = req.body.contact_address;
-			var text = req.body.text;
-			var sub_domain = req.body.sub_domain;
-			var site_id = req.body.site_id;
-			var favicon = req.body.favicon;
+			// Opret variabler og escape string
+			var name = mysql2.escape(req.body.name);
+			var skabelon_id = mysql2.escape(req.body.skabelon_id);
+			var contact_mail = mysql2.escape(req.body.contact_mail);
+			var contact_phone = mysql2.escape(req.body.contact_phone);
+			var contact_name = mysql2.escape(req.body.contact_name);
+			var contact_address = mysql2.escape(req.body.contact_address);
+			var text = mysql2.escape(req.body.text);
+			var sub_domain = mysql2.escape(req.body.sub_domain);
+			var site_id = mysql2.escape(req.body.site_id);
+			var favicon = mysql2.escape(req.body.favicon);
 
 			// Tjek om dette skableonID eksisterer
-			var skabelonCheck = conn.query(`SELECT * FROM Skabeloner WHERE id = "${skabelon_id}"`);
+			var skabelonCheck = conn.query(`SELECT * FROM Skabeloner WHERE id = ${skabelon_id}`);
 
 			if (skabelonCheck.length > 0) {
 				
@@ -454,7 +472,10 @@ app.post("/createSite", (req,res) => {
 			}
 
 			// Url encode sub_domain
-			sub_domain = encodeURI(sub_domain.replaceAll(" ", "-").toLowerCase());
+			sub_domain = sub_domain.replaceAll(" ", "-").toLowerCase();
+
+			// Opret sub_domain som ikke er escaped der bruges til mkdir m.m
+			var sub_domainNOTESCAPED = req.body.sub_domain.replaceAll(" ", "-").toLowerCase();
 
 			// Alle vars er sat
 			echo.success = true;
@@ -479,14 +500,14 @@ app.post("/createSite", (req,res) => {
 
 			// Definer filen
 			favicon_file = req.files.favicon;
-  			uploadPath = __dirname + '/public/' + sub_domain + '/' + favicon_file.name;
+  			uploadPath = __dirname + '/public/Sites/' + sub_domainNOTESCAPED + '/' + favicon_file.name;
 
 			// Tjek om mappen til sub-domænet eksisterer
-			fs.access(`./public/${sub_domain}/`, function(error) {
+			fs.access(`./public/Sites/${sub_domainNOTESCAPED}/`, function(error) {
 				if (error) {
 				
 					// Opret mappen
-					fs.mkdirSync(`./public/${sub_domain}/`)
+					fs.mkdirSync(`./public/Sites/${sub_domainNOTESCAPED}/`)
 
 				}
 
@@ -516,7 +537,7 @@ app.post("/createSite", (req,res) => {
 			});
 
 			// Tjek om sub_domain er unik
-			var subCheck = conn.query(`SELECT * FROM Sites WHERE sub_domain = "${sub_domain}"`);
+			var subCheck = conn.query(`SELECT * FROM Sites WHERE sub_domain = ${sub_domain}`);
 
 			// tjek
 			if (subCheck.length > 0) {
@@ -528,13 +549,13 @@ app.post("/createSite", (req,res) => {
 			}else {
 
 				// Opret ny site i mysql
-				var result = conn.query(`INSERT INTO Sites (name, contact_mail, contact_phone, contact_name, contact_address, text, skabelon_id, user_id, sub_domain, favicon) VALUES ("${name}", "${contact_mail}", "${contact_phone}", "${contact_name}", "${contact_address}", "${text}", "${skabelon_id}", "${req.session.userID}", "${sub_domain}", "/public/${sub_domain}/${favicon_file.name}")`);
+				var result = conn.query(`INSERT INTO Sites (name, contact_mail, contact_phone, contact_name, contact_address, text, skabelon_id, user_id, sub_domain, favicon) VALUES (${name}, ${contact_mail}, ${contact_phone}, ${contact_name}, ${contact_address}, ${text}, ${skabelon_id}, ${req.session.userID}, ${sub_domain}, "/public/Sites/${req.body.sub_domain.replaceAll(" ", "-").toLowerCase()}/${favicon_file.name}")`);
 				
 				console.log("Results", result);
 
 				// Opdater echo
 				echo.success = true;
-				echo.status = "Site oprettet: /s/" + sub_domain;
+				echo.status = "Site oprettet: /s/" + sub_domainNOTESCAPED;
 
 			}
 			
@@ -578,23 +599,30 @@ app.delete("/deleteSite", (req,res) => {
 	// Tjek om brugeren er online
 	if (req.session.loggedIn) {
 
+		// Opret variabler til login
+		var loginUser = mysql2.escape(req.session.username);
+		var loginUserID = mysql2.escape(req.session.userID);
+
 		// Tjek om variabler er udfyldt
 		if (req.session.userID && req.body.site_id) {
 
+			// Opret variabler og escape
+			var site_id = mysql2.escape(req.body.site_id);
+
 			// Alle variabler er udfyldt
 			// Tjek om userID og user_id i mysql stemmer overens
-			var userCheck = conn.query(`SELECT * FROM Sites WHERE user_id = "${req.session.userID}" AND id = "${req.body.site_id}"`);
+			var userCheck = conn.query(`SELECT * FROM Sites WHERE user_id = ${loginUserID} AND id = ${site_id}`);
 
 			// If length
 			if (userCheck.length > 0) {
 
 				// Det hele stemmer overens
 				// Fjern denne fra DB
-				var deleteMysql = conn.query(`DELETE FROM Sites WHERE user_id = "${req.session.userID}" AND id = "${req.body.site_id}"`);
+				var deleteMysql = conn.query(`DELETE FROM Sites WHERE user_id = ${loginUserID} AND id = ${site_id}`);
 
 				// Opdater echo
 				echo.success = true;
-				echo.status = `Site with id: ${req.body.site_id} has been deleted!`;
+				echo.status = `Site with id: ${site_id} has been deleted!`;
 			
 				// console.log
 				// console.log("Delete", deleteMysql);
@@ -646,26 +674,26 @@ app.post("/updateSite", (req,res) => {
 	if (req.session.loggedIn) {
 
 		// Opret login
-		var loginUser = req.session.username;
-		var loginUserID = req.session.userID;
+		var loginUser = mysql2.escape(req.session.username);
+		var loginUserID = mysql2.escape(req.session.userID);
 
 		// Tjek om alle variabler er udfyldt
 		if (req.session.userID && req.body.site_id && req.body.name && req.body.skabelon_id && req.body.contact_mail && req.body.contact_phone && req.body.contact_name && req.body.contact_address && req.body.text && req.body.sub_domain){
 
 			// Alting er udfyldt
 			// Opret variabler
-			var name = req.body.name;
-			var skabelon_id = req.body.skabelon_id;
-			var contact_mail = req.body.contact_mail;
-			var contact_phone = req.body.contact_phone;
-			var contact_name = req.body.contact_name;
-			var contact_address = req.body.contact_address;
-			var text = req.body.text;
-			var sub_domain = req.body.sub_domain;
-			var site_id = req.body.site_id;
+			var name = mysql2.escape(req.body.name);
+			var skabelon_id = mysql2.escape(req.body.skabelon_id);
+			var contact_mail = mysql2.escape(req.body.contact_mail);
+			var contact_phone = mysql2.escape(req.body.contact_phone);
+			var contact_name = mysql2.escape(req.body.contact_name);
+			var contact_address = mysql2.escape(req.body.contact_address);
+			var text = mysql2.escape(req.body.text);
+			var sub_domain = mysql2.escape(req.body.sub_domain);
+			var site_id = mysql2.escape(req.body.site_id);
 
 			// Tjek om dette skableonID eksisterer
-			var skabelonCheck = conn.query(`SELECT * FROM Skabeloner WHERE id = "${skabelon_id}"`);
+			var skabelonCheck = conn.query(`SELECT * FROM Skabeloner WHERE id = ${skabelon_id}`);
 
 			if (skabelonCheck.length > 0) {
 				
@@ -686,22 +714,25 @@ app.post("/updateSite", (req,res) => {
 			var favicon_file;
 
 			// Url encode sub_domain
-			sub_domain = encodeURI(sub_domain.replaceAll(" ", "-").toLowerCase());
+			sub_domain = sub_domain.replaceAll(" ", "-").toLowerCase();
+
+			// Opret sub_domain som bruges til mkdir m.m.
+			var sub_domainNOTESCAPED = req.body.sub_domain.replaceAll(" ", "-").toLowerCase();
 			
 			// Tjek om denne hjemmeside tilhører denne bruger der er logget ind.
-			var userCheck = conn.query(`SELECT * FROM Sites where id = "${site_id}" AND user_id = "${loginUserID}"`);
+			var userCheck = conn.query(`SELECT * FROM Sites where id = ${site_id} AND user_id = ${loginUserID}`);
 
 			// Tjek resultat
 			if (userCheck.length > 0) {
 
 				// Tjek om subdomænet er blevet ændret
-				var domainChangeCheck = conn.query(`SELECT * FROM Sites where sub_domain = "${sub_domain}" AND user_id = "${loginUserID}"`);
+				var domainChangeCheck = conn.query(`SELECT * FROM Sites where sub_domain = ${sub_domain} AND user_id = ${loginUserID}`);
 
 				// Tjek resulstatet
 				if (domainChangeCheck.length > 0) {
 
 					// Tjek domænet allerede er i brug
-					var domainUsedCheck = conn.query(`SELECT * FROM Sites where sub_domain = "${sub_domain}" AND user_id != "${loginUserID}"`)
+					var domainUsedCheck = conn.query(`SELECT * FROM Sites where sub_domain = ${sub_domain} AND user_id != ${loginUserID}`)
 
 					// Tjek resultatet
 					if (domainUsedCheck.length > 0) {
@@ -718,28 +749,28 @@ app.post("/updateSite", (req,res) => {
 				}
 
 				// Opdater sql
-				var updateSQL = conn.query(`UPDATE Sites SET name = "${name}", skabelon_id = "${skabelon_id}", contact_mail = "${contact_mail}", contact_phone = "${contact_phone}", contact_name = "${contact_name}", contact_address = "${contact_address}", sub_domain = "${sub_domain}", text = "${text}" WHERE user_id = "${loginUserID}" AND id = "${site_id}"`);
+				var updateSQL = conn.query(`UPDATE Sites SET name = ${name}, skabelon_id = ${skabelon_id}, contact_mail = ${contact_mail}, contact_phone = ${contact_phone}, contact_name = ${contact_name}, contact_address = ${contact_address}, sub_domain = ${sub_domain}, text = ${text} WHERE user_id = ${loginUserID} AND id = ${site_id}`);
 
 				// Opdater echo
 				echo.success = true;
 				echo.status = "Site updated.";
 				echo.data = updateSQL;
 
-				console.log("Favicon!", req.body);
+				// console.log("Favicon!", req.body);
 
 				// Tjek om der er blevet uploadet en fil
 				if (req.files) {
 
 					// Definer filen
 					favicon_file = req.files.favicon;
-					uploadPath = __dirname + '/public/' + sub_domain + '/' + favicon_file.name;
+					uploadPath = __dirname + '/public/Sites/' + sub_domainNOTESCAPED + '/' + favicon_file.name;
 
 					// Tjek om mappen til sub-domænet eksisterer
-					fs.access(`${__dirname}/public/${sub_domain}/`, function(error) {
+					fs.access(`${__dirname}/public/Sites/${sub_domainNOTESCAPED}/`, function(error) {
 						if (error) {
 						
 							// Opret mappen
-							fs.mkdirSync(`${__dirname}/public/${sub_domain}/`)
+							fs.mkdirSync(`${__dirname}/public/Sites/${sub_domainNOTESCAPED}/`)
 
 						}
 
@@ -761,8 +792,11 @@ app.post("/updateSite", (req,res) => {
 
 						}
 
+						// Opret var til favicon placcering
+						var faviconPlacement = mysql2.escape("/public/Sites/" + sub_domainNOTESCAPED + "/" + favicon_file.name);
+
 						// Mysql
-						var updateFavicon = conn.query(`UPDATE Sites SET favicon = "/public/${sub_domain}/${favicon_file.name}" WHERE user_id = "${loginUserID}" AND id = "${site_id}"`);
+						var updateFavicon = conn.query(`UPDATE Sites SET favicon = ${faviconPlacement} WHERE user_id = ${loginUserID} AND id = ${site_id}`);
 
 						// Opdater echo
 						echo.success = true;
@@ -818,10 +852,10 @@ app.post("/updateSite", (req,res) => {
 app.get("/s/:site/", (req,res) => {
 
 	// Opret variabler
-	var siteParam = req.params.site;
+	var siteParam = mysql2.escape(req.params.site);
 
 	// Tjek om denne site eksisterer
-	var siteCheck = conn.query(`SELECT s.*, sk.placement FROM Sites s LEFT JOIN Skabeloner sk ON s.skabelon_id = sk.id WHERE s.sub_domain = "${siteParam}" LIMIT 1`);
+	var siteCheck = conn.query(`SELECT s.*, sk.placement FROM Sites s LEFT JOIN Skabeloner sk ON s.skabelon_id = sk.id WHERE s.sub_domain = ${siteParam} LIMIT 1`);
 
 	// Tjek
 	if (siteCheck.length > 0) {
@@ -834,7 +868,15 @@ app.get("/s/:site/", (req,res) => {
 
 	}else {
 
-		res.redirect("/");
+		/* res.redirect("/"); */
+
+		// Opret variabler
+		var err = `Denne side kunne desværre ikke findes: <i>${req.originalUrl}</i>`;
+		var errCode = 404;
+
+		// Render error
+		res.render("./pages/error", {loginState: req.session, err: err, errCode: errCode});
+		
 
 	}
 
@@ -847,7 +889,11 @@ app.use("/public", express.static("public"));
 app.use("*", (req,res) => {
 	
 	// Send 404
-	res.send("404 page not found...");
+	var err = `Denne side kunne desværre ikke findes: <i>${req.originalUrl}</i>`;
+	var errCode = 404;
+
+	// Render error
+	res.render("./pages/error", {loginState: req.session, err: err, errCode: errCode});
 
 })
 

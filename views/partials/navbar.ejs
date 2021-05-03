@@ -12,33 +12,33 @@
 				<li class="nav-item">
 					<a class="nav-link" aria-current="page" href="/">Hjem</a>
 				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="/opret-site">Opret site!</a>
+				</li>
 				<%if (loginState.loggedIn) {%>
 
 					<li class="nav-item">
-						<a class="nav-link" href="/opret-site">Opret site!</a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link" href="/mySites"><%= loginState.username %></a>
+						<a class="nav-link" href="/mySites"><%= loginState.username.replaceAll("'","") %></a>
 					</li>
 					
 				<%}else {%>
 
-					<li class="nav-item">
-						<a class="nav-link" href="/login">Opret site!</a>
-					</li>
 					<li class="nav-item">
 						<a class="nav-link" href="/login">Login</a>
 					</li>
 
 				<%}%>
 			</ul>
+			<%if (loginState.loggedIn) {%>
+				<ul class="navbar-nav ms-auto">
+
+					<li class="nav-item">
+						<a href="/logout" class="btn btn-danger">Log ud!</a>
+					</li>
+				
+				</ul>
+			<% } %>
 		</div>
-
-		<%if (loginState.loggedIn) {%>
-
-			<a href="/logout" class="btn btn-danger">Log ud!</a>
-
-		<% } %>
 
 	</div>
 </nav>

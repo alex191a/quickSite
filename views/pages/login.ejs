@@ -14,13 +14,13 @@
 
 		<h2>Login</h2>
 
-		<div>
+		<form id="loginForm">
 			<div id="loginAlert" class="alert alert-danger" style="display: none;" role="alert">
 				...
 			</div>
 			<div class="form-group">
 			  	<label for="inputUsername">Brugernavn</label>
-			  	<input type="email" class="form-control" id="inputUsername" name="username" aria-describedby="Username" placeholder="Indtast brugernavn">
+			  	<input type="text" class="form-control" id="inputUsername" name="username" aria-describedby="Username" placeholder="Indtast brugernavn">
 			</div>
 			<div class="form-group mt-3">
 			  	<label for="inputPassword">Adgangskode</label>
@@ -28,7 +28,7 @@
 			</div>
 			<button type="submit" class="btn btn-primary mt-2" onclick="submitLogin($('#inputUsername').val(),$('#inputPassword').val())">Login</button>
 
-		</div>
+		</form>
 
 		<a href="/opret-bruger">
 			<button class="btn btn-secondary mt-5">
@@ -39,6 +39,14 @@
 	</div>
 
 	<script>
+
+		// Prevent reload under login
+		$("#loginForm").submit((e) => {
+
+			// Prevent default
+			e.preventDefault();
+
+		})
 
 		// Login funktion
 		function submitLogin(username, password) {

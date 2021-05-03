@@ -14,58 +14,81 @@
 
 		<h2>Rediger site</h2>
 
-		<div id="editForm" class="p-4 pt-1">
-			<div id="loginAlert" class="alert alert-danger" style="display: none;" role="alert">
-				...
-			</div>
+		<div class="p-4 pt-1">
 
-			<div class="form-group mt-3">
-			  	<label for="inputName"><b>Navn</b></label>
-			  	<input required maxlength="255" value="<%= siteInfo.name %>" type="text" class="form-control" id="inputName" name="inputName" aria-describedby="Navn" placeholder="Indtast navn">
-			</div>
+			<form method="POST" enctype="multipart/form-data" id="editForm" accept-charset="utf-8">
 
-			<div class="form-group mt-3">
-				<label for="inputSkabelon"><b>Skabelon</b></label>
-				<input required  maxlength="11" value="<%= siteInfo.skabelon_id %>" type="text" class="form-control" id="inputSkabelon" name="inputSkabelon" aria-describedby="Skabelon" placeholder="Indtast skabelon ID">
-		 	</div>
+				<div class="form-group mt-3">
+					<label for="inputName"><b>Navn</b></label>
+					<input required maxlength="255" value="<%= siteInfo.name %>" type="text" class="form-control" id="inputName" name="name" aria-describedby="Navn" placeholder="Indtast navn">
+			  	</div>
+  
+			  	<div class="form-group mt-3">
+					<label for="inputSkabelon"><b>Skabelon</b></label>
+				  
+				  	<% skabeloner.forEach((skab_id)=> { %>
+						  
+						<div class="form-check bg-light rounded mt-4 pl-3 pt-3 pb-3 d-flex align-items-center">
+							<div class="d-inline-flex w-25">
+								<input <% if (siteInfo.skabelon_id === skab_id.id) { %> checked <% } %> required value="<%= skab_id.id %>" class="form-check-input m-1" type="radio" name="skabelon_id" id="skabRadio<%= skab_id.id %>">
+								<label class="form-check-label" for="skabRadio<%= skab_id.id %>">
+									<%= skab_id.name %>
+								</label>
+							</div>
+							<div class="m-3">
+								<img src="<%= skab_id.img_placement %>" onclick="$('#skabRadio<%= skab_id.id %>').click()" class="rounded" style="object-fit: cover; object-position: top; max-width: 100%; width: 400px; height: 200px;">
+							</div>
+						</div>
+  
+				  	<% }) %>
+  
+			   	</div>
+  
+			   	<div class="form-group mt-3">
+					<label for="inputContactMail"><b>Kontakt Mail</b></label>
+					<input required maxlength="255" value="<%= siteInfo.contact_mail %>" type="email" class="form-control" id="inputContactMail" name="contact_mail" aria-describedby="Mail" placeholder="Indtast Mail">
+			   	</div>
+  
+			  	<div class="form-group mt-3">
+				  	<label for="inputContactPhone"><b>Kontakt Telefon</b></label>
+				  	<input required maxlength="255" value="<%= siteInfo.contact_phone %>" type="text" class="form-control" id="inputContactPhone" name="contact_phone" aria-describedby="Telefon" placeholder="Indtast Telefon">
+			   	</div>
+  
+			  	<div class="form-group mt-3">
+				  	<label for="inputContactAddress"><b>Kontakt Addresse</b></label>
+				  	<input required maxlength="255" value="<%= siteInfo.contact_address %>" type="text" class="form-control" id="inputContactAddress" name="contact_address" aria-describedby="Adresse" placeholder="Indtast Adresse">
+			   	</div>
+  
+			  	<div class="form-group mt-3">
+				  	<label for="inputContactName"><b>Kontakt Navn</b></label>
+				  	<input required maxlength="255" value="<%= siteInfo.contact_name %>" type="text" class="form-control" id="inputContactName" name="contact_name" aria-describedby="Kontakt Navn" placeholder="Indtast kontakt navn">
+			   	</div>
+  
+			  	<div class="form-group mt-3">
+				  	<label for="inputSubDomain"><b>Sub-domain</b></label>
+				  	<input required maxlength="255" value="<%= siteInfo.sub_domain %>" type="text" class="form-control" id="inputSubDomain" name="sub_domain" aria-describedby="Sub Domæne" placeholder="dit-sub-domæne">
+			   	</div>
 
-			 <div class="form-group mt-3">
-				<label for="inputContactMail"><b>Kontakt Mail</b></label>
-				<input required maxlength="255" value="<%= siteInfo.contact_mail %>" type="email" class="form-control" id="inputContactMail" name="inputContactMail" aria-describedby="Mail" placeholder="Indtast Mail">
-		 	</div>
+				<div class="form-group mt-3">
+					<label><b>Text</b></label>
+					<textarea required maxlength="2500" name="text" id="inputText" class="w-100 p-2 form-control rounded" style="resize: vertical; min-height: 50px;" name="text"><%= siteInfo.text %></textarea>
+				</div>
+	
+				<div class="form-group mt-3">
+					<label for="inputFavicon"><b>Upload Logo</b></label> <br>
+					<img id="imagePreview" src="<%= siteInfo.favicon %>" alt="Aktuelt logo" width="60" height="50" class="rounded">
+					<input type="file" accept="image/png,image/gif,image/jpeg" class="form-control mt-2" id="inputFavicon" name="favicon" aria-describedby="Logo / Favicon" placeholder="Upload logo" name="favicon">
+				</div>
 
-			<div class="form-group mt-3">
-				<label for="inputContactPhone"><b>Kontakt Telefon</b></label>
-				<input required maxlength="255" value="<%= siteInfo.contact_phone %>" type="text" class="form-control" id="inputContactPhone" name="inputContactPhone" aria-describedby="Telefon" placeholder="Indtast Telefon">
-		 	</div>
+				<hr>
 
-			<div class="form-group mt-3">
-				<label for="inputContactAddress"><b>Kontakt Addresse</b></label>
-				<input required maxlength="255" value="<%= siteInfo.contact_address %>" type="text" class="form-control" id="inputContactAddress" name="inputContactAddress" aria-describedby="Adresse" placeholder="Indtast Adresse">
-		 	</div>
+				<div id="loginAlert" class="alert w-100 alert-danger mt-3" style="display: none;" role="alert">
+					...
+				</div>
+			  
+				<button type="submit" class="btn btn-primary mt-2 w-50 position-relative" style="left: 50%; transform: translateX(-50%);">Gem</button>
 
-			<div class="form-group mt-3">
-				<label for="inputContactName"><b>Kontakt Navn</b></label>
-				<input required maxlength="255" value="<%= siteInfo.contact_name %>" type="text" class="form-control" id="inputContactName" name="inputContactName" aria-describedby="Kontakt Navn" placeholder="Indtast kontakt navn">
-		 	</div>
-
-			<div class="form-group mt-3">
-				<label for="inputSubDomain"><b>Sub-domain</b></label>
-				<input required maxlength="255" value="<%= siteInfo.sub_domain %>" type="text" class="form-control" id="inputSubDomain" name="inputSubDomain" aria-describedby="Sub Domæne" placeholder="Indtast Sub-Domæne">
-		 	</div>
-			
-			<div class="form-group mt-3">
-				<label><b>Text</b></label>
-				<textarea required maxlength="2500" id="inputText" class="w-100 p-2 form-control rounded" style="resize: vertical; min-height: 50px;"><%= siteInfo.text %></textarea>
-			</div>
-
-			<div class="form-group mt-3">
-				<label for="inputFavicon"><b>Upload Logo</b></label> <br>
-				<img src="<%= siteInfo.favicon %>" alt="Aktuelt logo" width="60" height="50" class="rounded">
-				<input type="file" accept="image/png,image/gif,image/jpeg" class="form-control mt-2" id="inputFavicon" name="inputFavicon" aria-describedby="Logo / Favicon" placeholder="Upload logo">
-		 	</div>
-		  
-			<button type="submit" class="btn btn-primary mt-2" onclick="submitSave()">Gem</button>
+			</form>
 
 		</div>
 
@@ -73,34 +96,36 @@
 
 	<script>
 
+		// Prevent default
+		$("#editForm").submit(e => {
+
+			// Prevent
+			e.preventDefault();
+
+			submitSave();
+
+		})
+
+		// Vis image preview når logo uploades
+		document.getElementById("inputFavicon").onchange = function () {
+			var reader = new FileReader();
+
+			reader.onload = function (e) {
+				// get loaded data and render thumbnail.
+				document.getElementById("imagePreview").src = e.target.result;
+			};
+
+			// read the image file as a data URL.
+			reader.readAsDataURL(this.files[0]);
+		};
+
 		function submitSave() {
 
-			// Opret variabler
-			var name = $("#inputName").val();
-			var skabelon_id = $("#inputSkabelon").val();
-			var contact_mail = $("#inputContactMail").val();
-			var contact_phone = $("#inputContactPhone").val();
-			var contact_name = $("#inputContactName").val();
-			var contact_address = $("#inputContactAddress").val();
-			var text = $("#inputText").val();
-			var sub_domain = $("#inputSubDomain").val();
-			var site_id = <%= siteInfo.id %>;
-
-			// Favicon upload
-			var favicon_data = $("#inputFavicon").prop("files")[0];
-
 			// FormData
-			let formData = new FormData();
-			formData.append("name", name);
-			formData.append("skabelon_id", skabelon_id);
-			formData.append("contact_mail", contact_mail);
-			formData.append("contact_phone", contact_phone);
-			formData.append("contact_name", contact_name);
-			formData.append("contact_address", contact_address);
-			formData.append("text", text);
-			formData.append("sub_domain", sub_domain);
-			formData.append("favicon", favicon_data);
-			formData.append("site_id", <%= siteInfo.id %>);
+			var formData = new FormData($("form")[0]);
+
+			// Append site_id
+			formData.append("site_id", <%= siteInfo.id %>)
 
 			// Timeout -- vent på base64 conversion
 			setTimeout(() => {

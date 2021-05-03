@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Error - QuickSite</title>
+	<%- include("../partials/head") %>
+</head>
+<body style="background: #696969;">
+	<%- include("../partials/navbar")%>
+	
+	<div class="container mt-3 text-center bg-white p-3 rounded">
+
+		<h2 class="">😔 Der er desværre sket en fejl...</h2>
+
+		<p class="rounded p-2 lead" style="width: 80%; position: relative; display: inline-block;">
+			<b><%- errCode %></b> - <%- err %>
+		</p>
+
+	</div>
+
+	<div class="container mt-3 p-3 bg-light text-center rounded">
+
+		<h4>Måske vi kan hjælpe dig med hvad du leder efter</h4>
+
+		<a href="/mySites" class="btn btn-secondary">
+			Mine sites
+		</a>
+
+		<a href="/opret-site" class="btn btn-secondary">
+			Opret site
+		</a>
+
+		<a href="/login" class="btn btn-secondary">
+			Login
+		</a>
+
+	</div>
+
+</body>
+</html>
