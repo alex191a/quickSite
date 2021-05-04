@@ -952,7 +952,7 @@ app.post("/updateSite", (req,res) => {
 })
 
 // Render site
-app.get("/s/:site/", (req,res) => {
+app.get("/s/:site/*", (req,res) => {
 
 	// Opret variabler
 	var siteParam = mysql2.escape(req.params.site);
