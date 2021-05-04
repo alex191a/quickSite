@@ -69,17 +69,14 @@ const conn2 = mysql2.createConnection({
 	database: 'quicksite'
 });
 
+// Moment JS
+var moment = require("moment");
+app.locals.moment = moment;
+
 // Root
 app.get("/", (req,res) =>{
 
 	res.render("./pages/index", {loginState: req.session});
-
-	// Tjek om logget ind
-	/* if (req.session.loggedIn) {
-		res.send(`This is a quickSite API endpoint! - ${req.session.username}`);
-	}else {
-		res.send("You are not logged in!");
-	} */
 
 })
 
@@ -197,6 +194,27 @@ app.get("/opret-bruger", (req,res) => {
 
 	// Render
 	res.render("./pages/opretBruger", {loginState: req.session});
+
+});
+
+// Profile
+app.get("/profile", (req,res) => {
+
+	// Tjek om brugeren ikke er logget ind
+	if (!req.session.loggedIn) {
+
+		// Redir til forsiden
+		return res.redirect("/login");
+
+	}
+
+	// Find timestamp for oprettelse.
+	var userInfo = conn.query(`SELECT * FROM Users where id = ${req.session.userID}`);
+
+	// Render
+	res.render("./pages/profile", {loginState: req.session, userInfo: userInfo[0]});
+
+	// console.log(userInfo);
 
 })
 
@@ -341,27 +359,52 @@ app.get("/removeUser", (req,res) => {
 		status:"",
 		data: {}
 	}
+
+	// Tjek om brugeren er logget ind
 	if(req.session.loggedIn){
 
 		// Opret variabler
 		let loginUser = mysql2.escape(req.session.username);
 		let loginUserID = mysql2.escape(req.session.userID);
 
+		// Mysql variabler bruges senere
+		let result;
+		let result2;
+
 		// Mysql
-		let result = conn.query(`DELETE FROM Sites WHERE user_id = ${loginUserID}`);
-		let result2 = conn.query(`DELETE FROM Users WHERE id = ${loginUserID}`);
+		try {
+			
+			// Mysql
+			result = conn.query(`DELETE FROM Sites WHERE user_id = ${loginUserID}`);
+			result2 = conn.query(`DELETE FROM Users WHERE id = ${loginUserID}`);
+
+		}catch (err) {
+
+			// Opdater echo
+			echo.success = false;
+			echo.err = err;
+			echo.status = err;
+			echo.errCode = 500;
+
+			// Return
+			return res.send(echo);
+
+		}
+
+		// Destroy session
+		req.session.destroy();
 
 		// Opdater echo
-		echo.data ={result, result2}
+		echo.data = {result, result2}
 		echo.success= true;
-		echo.status = "Delete user and users sites"
+		echo.status = "User has been deleted!";
 
 	}
 	else{
 
 		// Opdater echo
 		echo.success= false;
-		echo.err= "user not logged in";
+		echo.err= "User not logged in";
 		echo.errCode = 403;
 
 	}
@@ -952,7 +995,7 @@ app.post("/updateSite", (req,res) => {
 })
 
 // Render site
-app.get("/s/:site/*", (req,res) => {
+app.get("/s/:site*", (req,res) => {
 
 	// Opret variabler
 	var siteParam = mysql2.escape(req.params.site);

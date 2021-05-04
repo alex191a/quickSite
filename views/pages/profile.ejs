@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>QuickSite</title>
+	<%- include("../partials/head") %>
+
+</head>
+<body>
+	<%- include("../partials/navbar")%>
+	
+	<div class="container mt-5 text-center">
+
+		<h2><%= loginState.username.replaceAll("'", "") %>'s profil</h2>
+
+		<hr>
+
+		<div id="alertProfile" class="alert alert-primary w-100 d-none" role="alert">
+			...
+		</div>
+
+		<div class="d-flex flex-row justify-content-center flex-wrap">
+
+			<div class="form-group">
+				<label for="brugernavnInput">Brugernavn</label>
+				<input value="<%= loginState.username.replaceAll("'","") %>" type="text" disabled class="form-control text-center" id="brugernavnInput" aria-describedby="brugernavnHelp" placeholder="Brugernavn">
+				<small id="brugernavnHelp" class="form-text text-muted">Det er ikke muligt at ændre dit brugernavn selv.</small>
+			</div>
+
+			<div class="form-group align-self-center m-4">
+				<button onclick="logOut()" class="btn btn-danger">
+					Slet bruger
+				</button>
+			</div>
+
+		</div>
+
+		<div class="d-flex flex-row justify-content-center flex-wrap mt-3">
+
+			<span>
+
+				Du har været bruger siden: <%= moment(userInfo.date_created).locale("da").format("LLL") %> - (<%= moment(userInfo.date_created).locale("da").fromNow(); %>)
+			
+			</span>
+
+		</div>
+
+	</div>
+
+	<script>
+
+		// Log ud funktion
+		function logOut() {
+
+			// Confirm
+			if (confirm("Du er ved at slette denne bruger samt alle sites tilhørende. Er du sikker?")) {
+
+				// Ajax
+				$.ajax({
+					type: "GET",
+					url: "/removeUser",
+				}).done(data => {
+
+					// Do something
+					if (data.success) {
+
+						// Success
+
+						// Opdater #alertProfile
+						$("#alertProfile").removeClass("d-none");
+						$("#alertProfile").removeClass("alert-danger");
+						$("#alertProfile").addClass("alert-primary");
+						$("#alertProfile").html("Bruger fjernet med success!");
+
+						// Viderestil efter 5 sekunder
+						setTimeout(() => {
+
+							// Redir
+							window.location.href = "/";
+
+						}, 5000)
+
+					}else {
+
+						// Error
+						// Opdater #alertProfile
+						$("#alertProfile").removeClass("d-none");
+						$("#alertProfile").removeClass("alert-primary");
+						$("#alertProfile").addClass("alert-danger");
+						$("#alertProfile").html(data.status);
+
+					}
+
+				}).fail(err => {
+
+					// Failed
+					// Opdater #alertProfile
+					$("#alertProfile").removeClass("d-none");
+					$("#alertProfile").removeClass("alert-primary");
+					$("#alertProfile").addClass("alert-danger");
+					$("#alertProfile").html(err);
+
+				});
+
+			}
+
+		}
+
+	</script>
+
+</body>
+</html>
