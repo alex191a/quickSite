@@ -18,7 +18,11 @@
 				<%if (loginState.loggedIn) {%>
 
 					<li class="nav-item">
-						<a class="nav-link" href="/mySites"><%= loginState.username.replaceAll("'","") %></a>
+						<a href="/mySites" class="nav-link">Mine sider</a>
+					</li>
+
+					<li class="nav-item">
+						<a class="nav-link" href="/profile"><%= loginState.username.replaceAll("'","") %></a>
 					</li>
 					
 				<%}else {%>
