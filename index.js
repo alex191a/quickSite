@@ -46,13 +46,13 @@ app.set("view engine", "ejs");
 // Mysql login info
 // Username: quickDB
 // Password: !Password1!
-// Server: famas.ml
+// Server: jbgaard.xyz
 // Database: quicksite
 
 // Mysql
 var mysql = require('sync-mysql');
 var conn = new mysql({
-	host: 'famas.ml',
+	host: 'jbgaard.xyz',
 	user: 'quickDB',
 	password: '!Password1!',
 	database: "quicksite"
@@ -63,7 +63,7 @@ const mysql2 = require('mysql2');
 const { Console } = require("console");
 // create the connection to database
 const conn2 = mysql2.createConnection({
-	host: 'famas.ml',
+	host: 'jbgaard.xyz',
 	user: 'quickDB',
 	password: '!Password1!',
 	database: 'quicksite'
