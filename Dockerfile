@@ -16,5 +16,7 @@ RUN yarn
 # Kopier source filer
 COPY . .
 
+EXPOSE 5600
+
 # Serve
 CMD ["yarn", "start"]
