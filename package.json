@@ -14,5 +14,13 @@
     "node-fetch": "^2.6.1",
     "nodemon": "^2.0.7",
     "sync-mysql": "^3.0.1"
+  },
+  "scripts": {
+	  "start": "node index.js",
+	  "test": "nodemon index.js",
+	  "docker-full": "yarn docker-build && yarn docker-tag && yarn docker-push",
+	  "docker-build": "docker build -t famasmaster78/quicksite .",
+	  "docker-tag": "docker tag famasmaster78/quicksite docker.jbgaard.xyz/quicksite",
+	  "docker-push": "docker push docker.jbgaard.xyz/quicksite"
   }
 }
