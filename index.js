@@ -60,13 +60,13 @@ var conn = new mysql({
 
 // get the client
 const mysql2 = require('mysql2');
-const { Console } = require("console");
 // create the connection to database
-const conn2 = mysql2.createConnection({
+const conn2 = mysql2.createPool({
 	host: 'jbgaard.xyz',
 	user: 'quickDB',
 	password: '!Password1!',
-	database: 'quicksite'
+	database: 'quicksite',
+	connectTimeout: 0
 });
 
 // Moment JS
