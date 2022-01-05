@@ -1,5 +1,5 @@
 # Hvilket image skal denne docker baseres på
-FROM node:16
+FROM node:17
 
 # Hvor arbejder denne docker i
 WORKDIR /app
